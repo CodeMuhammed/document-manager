@@ -5,6 +5,7 @@ machine:
 test:
   pre:
     - npm install
+    - psql -c 'create database database_test;' -U postgres
 
   override:
     - npm run migration:gen
