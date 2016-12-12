@@ -25,17 +25,11 @@ app.get('*', (req, res) => res.status(200).send({
 module.exports = app;
 
 
-// @TODO sync with github
+// Collect coverage data after test.
 // configure circleCI with complete db setup.
+
+
 // add coveralls and add badges to readme.
 
 // Add task runer gulp
 // write tests.
-
-
-// Init git 
-// Branch out to develop.
-// branch out to setup
-// commit the changes so far
-// Send in a pr to develop describing what has been done
-// merge to develop

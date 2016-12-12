@@ -1,0 +1,17 @@
+machine:
+  environment:
+    NODE_ENV: test
+
+test:
+  pre:
+    - npm install
+
+  override:
+    - npm run migration:gen
+    - npm run seed:clear
+    - npm run seed:insert
+    - npm run test
+    - npm run coverage
+  
+  post:
+    - npm run coveralls
