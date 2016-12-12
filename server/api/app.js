@@ -32,11 +32,10 @@ module.exports = app;
 // Add task runer gulp
 // write tests.
 
-// copy the task creation format
-// Define major chunks of tasks and describe them according to standards
+
 // Init git 
 // Branch out to develop.
 // branch out to setup
 // commit the changes so far
 // Send in a pr to develop describing what has been done
-// merge to develop 
+// merge to develop
