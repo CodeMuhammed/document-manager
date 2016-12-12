@@ -12,7 +12,5 @@ test:
     - npm run seed:clear
     - npm run seed:insert
     - npm run test
-    - npm run coverage
   
   post:
-    - npm run coveralls
