@@ -1,25 +1,43 @@
-module.exports = (sequelize, DataTypes) => {
+export default(sequelize, DataTypes) => {
   const Documents = sequelize.define('Documents', {
     access: {
-      type: DataTypes.STRING, // public , private, role
+      type: DataTypes.STRING,
       defaultValue: 'public',
       allowNull: false,
     },
     title: {
       type: DataTypes.STRING,
-      defaultValue: 'Title',
       allowNull: false,
+      validate: {
+        is: {
+          args: /\w+/g,
+          msg: 'invalid document title',
+        },
+      },
     },
     content: {
       type: DataTypes.STRING,
-      defaultValue: 'Body',
       allowNull: false,
+      validate: {
+        is: {
+          args: /\w+/g,
+          msg: 'invalid document content',
+        },
+      },
     },
   }, {
     classMethods: {
       associate: (models) => {
         Documents.belongsTo(models.Users, {
-          as: 'owner',
+          as: 'user',
+          onDelete: 'CASCADE',
+          foreignKey: {
+            allowNull: false,
+          },
+        });
+
+        Documents.belongsTo(models.Roles, {
+          as: 'role',
           foreignKey: {
             allowNull: false,
           },
@@ -27,5 +45,6 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
   });
+  sequelize.sync();
   return Documents;
 };

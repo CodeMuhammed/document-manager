@@ -1,0 +1,29 @@
+{
+    "users": {
+        "admin": {
+            "username": "user1",
+            "firstname": "user",
+            "lastname": "one",
+            "roleId": "123",
+            "password": "12345"
+        },
+        "regular": {
+            "username": "user2",
+            "firstname": "user",
+            "lastname": "two",
+            "roleId": "234",
+            "password": "12345"
+        }
+    },
+    "roles": {
+        "blocked": {
+            "title": "blocked"
+        }
+    },
+    "documents": {
+        "new": {
+            "title": "Test doc title here",
+            "content": "Test doc content goes here"
+        }
+    }
+}

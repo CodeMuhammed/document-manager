@@ -4,13 +4,19 @@ module.exports = {
     "id": {
         "type": "INTEGER",
         "allowNull": false,
-        "primaryKey": true,
-        "autoIncrement": true
+        "autoIncrement": true,
+        "primaryKey": true
     },
     "title": {
         "type": "VARCHAR(255)",
-        "defaultValue": "regular",
-        "allowNull": false
+        "allowNull": false,
+        "unique": true,
+        "validate": {
+            "is": {
+                "args": {},
+                "msg": "invalid role format"
+            }
+        }
     },
     "createdAt": {
         "type": "TIMESTAMP WITH TIME ZONE",

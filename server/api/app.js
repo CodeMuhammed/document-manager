@@ -1,35 +1,22 @@
 
-import express from 'express';
 import bodyParser from 'body-parser';
 import logger from 'morgan';
+import methodOverride from 'method-override';
+import routes from './routes';
 
-// Set up the express app
-const app = express();
+export default {
+  extend: (expressApp) => {
+    // Log requests to the console.
+    expressApp.use(logger('dev'));
 
-// Log requests to the console.
-app.use(logger('dev'));
+    // Categorize CRUD request corectly
+    expressApp.use(methodOverride('_method'));
 
-// Parse incoming request's data.
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+    // Parse incoming request's data.
+    expressApp.use(bodyParser.json());
+    expressApp.use(bodyParser.urlencoded({ extended: true }));
 
-// Import models here
-
-// Configure jwt authentication here.
-
-// Configure routes here
-app.get('*', (req, res) => res.status(200).send({
-  message: 'Welcome to the beginning of nothingness.',
-}));
-
-module.exports = app;
-
-
-// Collect coverage data after test.
-// configure circleCI with complete db setup.
-
-
-// add coveralls and add badges to readme.
-
-// Add task runer gulp
-// write tests..
+    // Add routes here
+    routes.apply(expressApp);
+  },
+};
