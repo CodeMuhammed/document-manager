@@ -11,3 +11,4 @@ test:
     - npm run test
   
   post:
+    - npm run coveralls
