@@ -12,9 +12,9 @@ const create = (req, res) => {
 
   models.Documents.create(newDoc)
   .then((result) => {
-    res.status(200).send(
+    res.status(201).send(
       {
-        msg: result.get({
+        data: result.get({
           plain: true,
         }),
       }

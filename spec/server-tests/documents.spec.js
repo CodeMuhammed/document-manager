@@ -5,14 +5,30 @@ import usersAuth from './loginusers';
 
 let adminUser;
 let regularUser;
-
+let defaultDoc;
 describe('Documents API', () => {
   beforeAll((done) => {
+    const getDoc = () => {
+      request(app)
+        .get('/documents/123')
+        .set('Accept', 'application/json')
+        .set('x-access-token', adminUser.token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end((err, res) => {
+          if (res) {
+            defaultDoc = res.body[0];
+            done();
+          }
+          return done(err);
+        });
+    };
+
     usersAuth.login(request, app, (users) => {
       if (users) {
         adminUser = users.admin;
         regularUser = users.regular;
-        done();
+        getDoc();
       } else {
         done(new Error('Default users could not be logged in'));
       }
@@ -60,7 +76,20 @@ describe('Documents API', () => {
       });
     });
 
-    // @TODO tests creating a document.
+    it('Creates a new document', (done) => {
+      request(app)
+      .post('/documents/')
+      .set('x-access-token', adminUser.token)
+      .send(testData.documents.new)
+        .expect(201)
+        .end((err, res) => {
+          if (res) {
+            expect(res.body.data.id).toBeDefined();
+            return done();
+          }
+          return done(err);
+        });
+    });
   });
 
   describe('/documents/:id', () => {
@@ -99,6 +128,34 @@ describe('Documents API', () => {
               expect(isValid).toBeTruthy();
             });
             done();
+          }
+          return done(err);
+        });
+    });
+
+    it('Should UPDATE the docment', (done) => {
+      request(app)
+      .put(`/documents/${defaultDoc.id}`)
+      .set('x-access-token', adminUser.token)
+      .send(defaultDoc)
+        .expect(200)
+        .end((err, res) => {
+          if (res) {
+            expect(res.body.msg).toEqual('document updated');
+            return done();
+          }
+          return done(err);
+        });
+    });
+    it('Should DELETE the docment', (done) => {
+      request(app)
+      .delete(`/documents/${defaultDoc.id}`)
+      .set('x-access-token', adminUser.token)
+        .expect(201)
+        .end((err, res) => {
+          if (res) {
+            expect(res.body.msg).toEqual('document deleted');
+            return done();
           }
           return done(err);
         });
