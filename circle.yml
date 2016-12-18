@@ -8,9 +8,6 @@ test:
     - psql -c 'create database database_test;' -U postgres
 
   override:
-    - npm run migration:gen
-    - npm run seed:clear
-    - npm run seed:insert
     - npm run test
   
   post:

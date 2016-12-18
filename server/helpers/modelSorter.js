@@ -4,13 +4,11 @@
  * Models with no associations are added first
  */
 
-const sort = (models) => {
-   // Returns default values.
-  const sortedData = ['Roles', 'Users', 'Documents'];
-  return sortedData;
-};
-
 // Exports public functionalities.
-module.exports = {
-  sort,
+export default {
+  sort: (models) => {
+    // Returns default values.
+    const sortedData = ['Roles', 'Users', 'Documents'];
+    return sortedData;
+  },
 };

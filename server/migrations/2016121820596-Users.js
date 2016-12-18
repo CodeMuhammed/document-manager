@@ -9,22 +9,36 @@ module.exports = {
     },
     "username": {
         "type": "VARCHAR(255)",
-        "defaultValue": "username",
-        "allowNull": false
+        "allowNull": false,
+        "validate": {
+            "is": {
+                "args": {},
+                "msg": "username should only contain alphanumeric characters with optional underscores"
+            }
+        }
     },
     "firstname": {
         "type": "VARCHAR(255)",
-        "defaultValue": "first",
-        "allowNull": false
+        "allowNull": false,
+        "validate": {
+            "is": {
+                "args": {},
+                "msg": "firstname should contain only alphabets"
+            }
+        }
     },
     "lastname": {
         "type": "VARCHAR(255)",
-        "defaultValue": "last",
-        "allowNull": false
+        "allowNull": false,
+        "validate": {
+            "is": {
+                "args": {},
+                "msg": "lastname should contain only alphabets"
+            }
+        }
     },
     "password": {
         "type": "VARCHAR(255)",
-        "defaultValue": "1234567",
         "allowNull": false
     },
     "createdAt": {
@@ -34,6 +48,16 @@ module.exports = {
     "updatedAt": {
         "type": "TIMESTAMP WITH TIME ZONE",
         "allowNull": false
+    },
+    "RoleId": {
+        "type": "INTEGER",
+        "allowNull": true,
+        "references": {
+            "model": "Roles",
+            "key": "id"
+        },
+        "onDelete": "SET NULL",
+        "onUpdate": "CASCADE"
     },
     "roleId": {
         "allowNull": false,

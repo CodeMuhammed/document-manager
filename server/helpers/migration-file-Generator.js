@@ -1,9 +1,8 @@
 import Sequelize from 'sequelize';
 import fs from 'fs-extra';
-import * as sorter from './modelSorter';
+import sorter from './modelSorter';
 import models from '../models';
 import * as Config from '../config.json';
-
 
 const config = Config[(process.env.NODE_ENV || 'development')];
 
