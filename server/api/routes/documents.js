@@ -8,6 +8,9 @@ router.route('/')
    .get(auth.authorize, documentsController.getAll)
    .post(auth.authorize, documentsController.create);
 
+router.route('/search')
+   .get(auth.authorize, documentsController.search);
+
 router.route('/:id')
    .get(auth.authorize, documentsController.getOne)
    .put(auth.authorize, documentsController.update)

@@ -161,4 +161,26 @@ describe('Documents API', () => {
         });
     });
   });
+
+  describe('/documents/search', () => {
+    it('Searches for documents given search criteria', (done) => {
+      const query = testData.search.query1;
+      request(app)
+        .get(`/documents/search?role=${query.role}&limit=${query.limit}&date=${query.date}`)
+        .set('Accept', 'application/json')
+        .set('x-access-token', adminUser.token)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .end((err, res) => {
+          if (res) {
+            expect(res.body.length <= query.limit).toBeTruthy();
+            res.body.forEach((doc) => {
+              expect(doc.role.title).toEqual(query.role);
+            });
+            done();
+          }
+          return done(err);
+        });
+    });
+  });
 });

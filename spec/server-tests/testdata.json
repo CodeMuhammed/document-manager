@@ -25,5 +25,17 @@
             "title": "Test doc title here",
             "content": "Test doc content goes here"
         }
+    },
+    "search": {
+        "query1": {
+            "role": "admin",
+            "limit": 3,
+            "date": "asc" 
+        },
+        "query2": {
+            "role": "regular",
+            "limit": 2,
+            "date": "desc" 
+        }
     }
 }
