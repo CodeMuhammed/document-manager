@@ -118,10 +118,42 @@ const remove = (req, res) => {
   });
 };
 
+// Method definition for seaching documents
+const search = (req, res) => {
+  // req.query.date.toUpperCase()
+  models.Documents.findAll({
+    order: [
+      ['createdAt', req.query.date.toUpperCase()],
+    ],
+    limit: req.query.limit,
+    include: [
+      {
+        as: 'role',
+        model: models.Roles,
+        where: { title: req.query.role },
+      },
+    ],
+  })
+  .then((results) => {
+    res.status(200).send(
+      results
+      .map(result =>
+        result.get({
+          plain: true,
+        })
+      )
+    );
+  })
+  .catch((e) => {
+    res.status(500).send({ msg: e });
+  });
+};
+
 export default {
   create,
   getAll,
   getOne,
   update,
   remove,
+  search,
 };
