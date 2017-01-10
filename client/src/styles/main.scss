@@ -1,0 +1,33 @@
+body {
+    background-color: #00BCD4;
+    padding: 0em;
+}
+
+.login-form {
+    margin-top: 5em;
+}
+
+.select {
+    z-index: 1000000;
+} 
+
+.signup-btn {
+    padding: 0 !important;
+}
+
+.role-select {
+    h6 {
+        font-size:1.4em;
+        margin-bottom:.5em;
+    }
+}
+
+.error {
+    display: block;
+    margin-left:3em;
+    font: {
+        weight: bold;
+        size:.95em;
+    }
+    color: red;
+}

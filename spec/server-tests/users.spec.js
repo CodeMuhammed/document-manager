@@ -31,7 +31,6 @@ describe('User API', () => {
         .end((err, res) => {
           if (res) {
             expect(res.body.msg).toEqual('signup success');
-            expect(res.body.data.id).toBeDefined();
             return done();
           }
           return done(err);

@@ -4,7 +4,8 @@
   "description": "Test CP-3",
   "main": "index.js",
   "scripts": {
-    "app": "node_modules/.bin/babel-watch ./server/api",
+    "app": "npm run server &  npm run client:watch",
+    "server": "node_modules/.bin/babel-watch ./server/api",
     "test": "npm run reset && node_modules/.bin/babel-istanbul cover node_modules/.bin/jasmine",
     "coveralls": "cat ./coverage/*.info | ./node_modules/coveralls/bin/coveralls.js",
     "reset": "npm run migration:gen && npm run migration:db && npm run seed:clear && npm run seed:insert",
@@ -12,7 +13,9 @@
     "migration:db": "./node_modules/.bin/sequelize db:migrate",
     "seed:insert": "./node_modules/.bin/sequelize db:seed:all",
     "seed:clear": "./node_modules/.bin/sequelize db:seed:undo:all",
-    "seed:create": "./node_modules/.bin/sequelize seed:create"
+    "seed:create": "./node_modules/.bin/sequelize seed:create",
+    "client:watch": "webpack -d --watch",
+    "client:build": "webpack"
   },
   "keywords": [
     "document",
@@ -24,6 +27,7 @@
   "dependencies": {
     "babel-cli": "^6.18.0",
     "babel-istanbul": "^0.12.1",
+    "babel-polyfill": "^6.20.0",
     "babel-preset-es2015": "^6.18.0",
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.15.2",
@@ -36,21 +40,43 @@
     "express": "^4.14.0",
     "fs-extra": "^1.0.0",
     "i": "^0.3.5",
+    "isomorphic-fetch": "^2.2.1",
     "jsonwebtoken": "^7.2.1",
+    "materialize-css": "^0.97.8",
     "method-override": "^2.3.7",
     "morgan": "^1.7.0",
     "mysql": "^2.12.0",
     "pg": "^6.1.0",
     "pg-hstore": "^2.3.2",
+    "react": "^15.4.1",
+    "react-dom": "^15.4.1",
+    "react-redux": "^5.0.1",
+    "react-router": "^3.0.0",
+    "react-select": "^1.0.0-rc.2",
+    "redux": "^3.6.0",
+    "redux-logger": "^2.7.4",
+    "redux-thunk": "^2.1.0",
     "sequelize": "^3.27.0",
     "sequelize-cli": "^2.4.0",
     "sqlite3": "^3.1.8",
     "supertest": "^2.0.1",
-    "tedious": "^1.14.0"
+    "tedious": "^1.14.0",
+    "webpack": "^1.14.0"
   },
   "devDependencies": {
+    "babel-eslint": "^7.1.1",
+    "babel-loader": "^6.2.10",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-react": "^6.16.0",
     "babel-watch": "^2.0.4",
+    "css-loader": "^0.26.1",
+    "eslint-plugin-react": "^6.8.0",
     "istanbul": "^0.4.5",
-    "jasmine": "^2.5.2"
+    "jasmine": "^2.5.2",
+    "node-sass": "^4.1.1",
+    "sass-loader": "^4.1.1",
+    "serve": "^2.1.2",
+    "style-loader": "^0.13.1",
+    "webpack": "^1.14.0"
   }
 }

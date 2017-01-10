@@ -27,41 +27,12 @@ const create = (req, res) => {
         });
 
         models.Users.create(req.body)
-        .then((result) => {
-          const data = result.get({
-            plain: true,
-          });
-
-          // Use the roleId to get the role from the db
-          models.Roles.findAll({
-            where: {
-              id: data.roleId,
-            },
-          })
-          .then((roleInstance) => {
-            const role = roleInstance[0].get({
-              plain: true,
-            });
-
-            const token = jwt.sign({
-              userId: data.id,
-              roleId: data.roleId,
-              role: role.title,
-            }, 'SECRET HERE', {
-              expiresIn: 60 * 60 * 24,
-            });
-
-            res.status(200).send(
-              {
-                msg: 'signup success',
-                data,
-                token,
-              }
-            );
-          })
-          .catch(() => {
-            res.status(500).send({ msg: 'could not create jwt token' });
-          });
+        .then(() => {
+          res.status(200).send(
+            {
+              msg: 'signup success',
+            }
+          );
         })
         .catch(() => {
           res.status(500).send({ msg: 'error while creating user, form might contain invalid inputs' });

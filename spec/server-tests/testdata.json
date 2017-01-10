@@ -30,12 +30,12 @@
         "query1": {
             "role": "admin",
             "limit": 3,
-            "date": "asc" 
+            "date": "asc"
         },
         "query2": {
             "role": "regular",
             "limit": 2,
-            "date": "desc" 
+            "date": "desc"
         }
     }
 }
