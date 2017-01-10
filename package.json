@@ -1,7 +1,7 @@
 {
   "name": "sequilize",
   "version": "1.0.0",
-  "description": "Test CP-3",
+  "description": "Document manager CP-3",
   "main": "index.js",
   "scripts": {
     "app": "npm run server &  npm run client:watch",

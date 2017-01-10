@@ -38160,13 +38160,7 @@
 	
 	  _createClass(Signin, [{
 	    key: 'componentDidMount',
-	    value: function componentDidMount() {
-	      var store = this.context.store;
-	
-	      store.dispatch(_actions2.default.signinThunk('coded', '12345')).then(function () {
-	        console.log('Signin done');
-	      });
-	    }
+	    value: function componentDidMount() {}
 	  }, {
 	    key: 'render',
 	    value: function render() {
@@ -38893,7 +38887,7 @@
 	  switch (data.status) {
 	    case 'success':
 	      {
-	        action.response = data.response;
+	        action.success = data.success;
 	        return action;
 	      }
 	    case 'error':
@@ -38919,16 +38913,15 @@
 	    }).then(function (response) {
 	      return response.json().then(function (data) {
 	        if (response.ok) {
-	          dispatch(signupHandler({
+	          return dispatch(signupHandler({
 	            status: 'success',
-	            response: data
-	          }));
-	        } else {
-	          dispatch(signupHandler({
-	            status: 'error',
-	            error: data
+	            success: data
 	          }));
 	        }
+	        return dispatch(signupHandler({
+	          status: 'error',
+	          error: data
+	        }));
 	      });
 	    }).catch(function (error) {
 	      dispatch(signupHandler({
@@ -38994,6 +38987,11 @@
 	        password: '',
 	        confirmPass: '',
 	        role: { value: '123', label: 'Admin' }
+	      },
+	      asyncLoader: {
+	        status: '',
+	        succeed: false,
+	        message: ''
 	      }
 	    };
 	
@@ -39006,6 +39004,7 @@
 	    _this.handleInputChange = _this.handleInputChange.bind(_this);
 	    _this.handleRolesChange = _this.handleRolesChange.bind(_this);
 	    _this.displayValidationErrors = _this.displayValidationErrors.bind(_this);
+	    _this.displayAsyncFeedback = _this.displayAsyncFeedback.bind(_this);
 	    _this.updateValidators = _this.updateValidators.bind(_this);
 	    _this.handleSubmit = _this.handleSubmit.bind(_this);
 	    _this.isFormValid = _this.isFormValid.bind(_this);
@@ -39037,18 +39036,91 @@
 	    value: function handleSubmit(e) {
 	      var _this2 = this;
 	
+	      var newState = this.state;
+	      newState.asyncLoader.status = 'processing';
+	      this.setState(newState);
 	      this.store.dispatch(_actions2.default.signupThunk({
 	        username: this.state.userInfo.username,
 	        firstname: this.state.userInfo.firstname,
 	        lastname: this.state.userInfo.lastname,
 	        password: this.state.userInfo.password,
 	        roleId: this.state.userInfo.role.value
-	      })).then(function (r) {
-	        console.log(r);
-	        console.log('successully signed up a new user');
-	        _this2.context.router.push('/signin');
+	      })).then(function (info) {
+	        console.log(info);
+	        newState = _this2.state;
+	        if (info.status === 'error') {
+	          newState.asyncLoader = {
+	            status: 'completed',
+	            succeed: false,
+	            message: info.error.msg
+	          };
+	        } else {
+	          newState.asyncLoader = {
+	            status: 'completed',
+	            succeed: true,
+	            message: info.success.msg
+	          };
+	        }
+	        _this2.setState(newState);
 	      });
 	      e.preventDefault();
+	    }
+	  }, {
+	    key: 'displayAsyncFeedback',
+	    value: function displayAsyncFeedback() {
+	      if (this.state.asyncLoader.status === 'processing') {
+	        return _react2.default.createElement(
+	          'div',
+	          { className: 'preloader-wrapper small active' },
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'spinner-layer spinner-green-only' },
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'circle-clipper left' },
+	              _react2.default.createElement('div', { className: 'circle' })
+	            ),
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'gap-patch' },
+	              _react2.default.createElement('div', { className: 'circle' })
+	            ),
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'circle-clipper right' },
+	              _react2.default.createElement('div', { className: 'circle' })
+	            )
+	          )
+	        );
+	      } else if (this.state.asyncLoader.status === 'completed') {
+	        if (!this.state.asyncLoader.succeed) {
+	          return _react2.default.createElement(
+	            'span',
+	            { style: { color: 'red' } },
+	            ' ',
+	            this.state.asyncLoader.message
+	          );
+	        }
+	        return _react2.default.createElement(
+	          'div',
+	          null,
+	          _react2.default.createElement(
+	            'span',
+	            { style: { color: 'green', display: 'block' } },
+	            this.state.asyncLoader.message
+	          ),
+	          _react2.default.createElement(
+	            'a',
+	            { href: '/#/signin' },
+	            _react2.default.createElement(
+	              'b',
+	              null,
+	              'Click here to signin'
+	            )
+	          )
+	        );
+	      }
+	      return '';
 	    }
 	  }, {
 	    key: 'displayValidationErrors',
@@ -39289,6 +39361,11 @@
 	                options: this.roles,
 	                onChange: this.handleRolesChange
 	              })
+	            ),
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'row center-align async-loader' },
+	              this.displayAsyncFeedback()
 	            ),
 	            _react2.default.createElement(
 	              'div',
@@ -42874,7 +42951,7 @@
 	            signup: {
 	              status: action.status,
 	              msg: 'signup successful',
-	              payload: action.response
+	              payload: action.success
 	            }
 	          });
 	        }
@@ -42932,7 +43009,7 @@
 	
 	
 	// module
-	exports.push([module.id, "body {\n  background-color: #00BCD4;\n  padding: 0em; }\n\n.login-form {\n  margin-top: 5em; }\n\n.select {\n  z-index: 1000000; }\n\n.signup-btn {\n  padding: 0 !important; }\n\n.role-select h6 {\n  font-size: 1.4em;\n  margin-bottom: .5em; }\n\n.error {\n  display: block;\n  margin-left: 3em;\n  font-weight: bold;\n  font-size: .95em;\n  color: red; }\n", ""]);
+	exports.push([module.id, "body {\n  background-color: #00BCD4;\n  padding: 0em; }\n\n.login-form {\n  margin-top: 5em; }\n\n.select {\n  z-index: 1000000; }\n\n.signup-btn {\n  padding: 0 !important; }\n\n.role-select h6 {\n  font-size: 1.4em;\n  margin-bottom: .5em; }\n\n.error {\n  display: block;\n  margin-left: 3em;\n  font-weight: bold;\n  font-size: .95em;\n  color: red; }\n\n.async-loader {\n  border: 1px solid #00BCD4;\n  border-radius: 5px;\n  padding: 1em .6em; }\n", ""]);
 	
 	// exports
 

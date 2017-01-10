@@ -16,6 +16,11 @@ export default class Signup extends Component {
         confirmPass: '',
         role: { value: '123', label: 'Admin' },
       },
+      asyncLoader: {
+        status: '',
+        succeed: false,
+        message: '',
+      },
     };
 
     this.roles = [
@@ -30,6 +35,7 @@ export default class Signup extends Component {
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleRolesChange = this.handleRolesChange.bind(this);
     this.displayValidationErrors = this.displayValidationErrors.bind(this);
+    this.displayAsyncFeedback = this.displayAsyncFeedback.bind(this);
     this.updateValidators = this.updateValidators.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.isFormValid = this.isFormValid.bind(this);
@@ -53,18 +59,63 @@ export default class Signup extends Component {
   }
 
   handleSubmit(e) {
+    let newState = this.state;
+    newState.asyncLoader.status = 'processing';
+    this.setState(newState);
     this.store.dispatch(actions.signupThunk({
       username: this.state.userInfo.username,
       firstname: this.state.userInfo.firstname,
       lastname: this.state.userInfo.lastname,
       password: this.state.userInfo.password,
       roleId: this.state.userInfo.role.value,
-    })).then((r) => {
-      console.log(r);
-      console.log('successully signed up a new user');
-      this.context.router.push('/signin');
+    })).then((info) => {
+      console.log(info);
+      newState = this.state;
+      if (info.status === 'error') {
+        newState.asyncLoader = {
+          status: 'completed',
+          succeed: false,
+          message: info.error.msg,
+        };
+      } else {
+        newState.asyncLoader = {
+          status: 'completed',
+          succeed: true,
+          message: info.success.msg,
+        };
+      }
+      this.setState(newState);
     });
     e.preventDefault();
+  }
+
+  displayAsyncFeedback() {
+    if (this.state.asyncLoader.status === 'processing') {
+      return (<div className="preloader-wrapper small active">
+        <div className="spinner-layer spinner-green-only">
+          <div className="circle-clipper left">
+            <div className="circle" />
+          </div><div className="gap-patch">
+            <div className="circle" />
+          </div><div className="circle-clipper right">
+            <div className="circle" />
+          </div>
+        </div>
+      </div>);
+    } else if (this.state.asyncLoader.status === 'completed') {
+      if (!this.state.asyncLoader.succeed) {
+        return <span style={{ color: 'red' }}> {this.state.asyncLoader.message}</span>;
+      }
+      return (
+        <div>
+          <span style={{ color: 'green', display: 'block' }}>
+            {this.state.asyncLoader.message}
+          </span>
+          <a href="/#/signin"><b>Click here to signin</b></a>
+        </div>
+      );
+    }
+    return '';
   }
 
   displayValidationErrors(fieldName) {
@@ -202,6 +253,10 @@ export default class Signup extends Component {
                 onChange={this.handleRolesChange}
               />
             </div>
+            <div className="row center-align async-loader">
+              { this.displayAsyncFeedback() }
+            </div>
+
             <div className="row">
               <div className="input-field col s12 signup-btn">
                 <button className={`btn waves-effect waves-light col s12 ${this.isFormValid() ? '' : 'disabled'}`}>

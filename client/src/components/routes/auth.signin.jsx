@@ -3,10 +3,6 @@ import actions from '../../store/actions';
 
 export default class Signin extends Component {
   componentDidMount() {
-    const { store } = this.context;
-    store.dispatch(actions.signinThunk('coded', '12345')).then(() => {
-      console.log('Signin done');
-    });
   }
 
   render() {

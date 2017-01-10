@@ -8,7 +8,7 @@ const signupHandler = (data) => {
   };
   switch (data.status) {
     case 'success': {
-      action.response = data.response;
+      action.success = data.success;
       return action;
     }
     case 'error': {
@@ -34,20 +34,19 @@ export default userInfo => (
     .then((response) => {
       return response.json().then((data) => {
         if (response.ok) {
-          dispatch(signupHandler(
+          return dispatch(signupHandler(
             {
               status: 'success',
-              response: data,
-            }
-          ));
-        } else {
-          dispatch(signupHandler(
-            {
-              status: 'error',
-              error: data,
+              success: data,
             }
           ));
         }
+        return dispatch(signupHandler(
+          {
+            status: 'error',
+            error: data,
+          }
+        ));
       });
     })
     .catch((error) => {

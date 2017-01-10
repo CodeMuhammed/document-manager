@@ -61,7 +61,7 @@ export default (state = defaultState.auth, action) => {
             signup: {
               status: action.status,
               msg: 'signup successful',
-              payload: action.response,
+              payload: action.success,
             },
           });
       }
