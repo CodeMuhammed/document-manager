@@ -5,7 +5,7 @@ export default (sequelize, DataTypes) => {
       allowNull: false,
       validate: {
         is: {
-          args: /^[a-z0-9_]+$/g,
+          args: /^[a-z0-9_]+$/,
           msg: 'username should only contain alphanumeric characters with optional underscores',
         },
       },
@@ -15,7 +15,7 @@ export default (sequelize, DataTypes) => {
       allowNull: false,
       validate: {
         is: {
-          args: /^[a-zA-Z]+$/g,
+          args: /^[a-zA-Z]+$/,
           msg: 'firstname should contain only alphabets',
         },
       },
@@ -25,7 +25,7 @@ export default (sequelize, DataTypes) => {
       allowNull: false,
       validate: {
         is: {
-          args: /^[a-zA-Z]+$/g,
+          args: /^[a-zA-Z]+$/,
           msg: 'lastname should contain only alphabets',
         },
       },
