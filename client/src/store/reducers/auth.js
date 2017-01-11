@@ -23,7 +23,7 @@ export default (state = defaultState.auth, action) => {
             signin: {
               status: action.status,
               msg: 'login successful',
-              payload: action.response,
+              payload: action.success,
             },
           });
       }

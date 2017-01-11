@@ -1,9 +1,11 @@
-import signinThunk from './signin';
-import signupThunk from './signup';
+import signinHandler from './signin';
+import signupHandler from './signup';
+import getRoles from './roles';
 
 export default {
-  signinThunk,
-  signupThunk,
+  signinHandler,
+  signupHandler,
+  getRoles,
 };
 
 

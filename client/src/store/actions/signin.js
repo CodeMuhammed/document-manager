@@ -1,13 +1,13 @@
 import fetch from 'isomorphic-fetch';
 
-const signinHandler = (data) => {
+const handler = (data) => {
   const action = {
     type: 'SIGNIN',
     status: data.status,
   };
   switch (data.status) {
     case 'success': {
-      action.response = data.response;
+      action.success = data.response;
       return action;
     }
     case 'error': {
@@ -19,14 +19,9 @@ const signinHandler = (data) => {
   }
 };
 
-export default (username, password) => (
+export default userInfo => (
   (dispatch) => {
-    dispatch(signinHandler({ status: 'start' }));
-
-    const payload = {
-      username,
-      password,
-    };
+    dispatch(handler({ status: 'start' }));
 
     return fetch('/users/login', {
       method: 'POST',
@@ -34,29 +29,28 @@ export default (username, password) => (
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(userInfo),
     })
     .then((response) => {
       return response.json().then((data) => {
         if (response.ok) {
-          dispatch(signinHandler(
+          return dispatch(handler(
             {
               status: 'success',
               response: data,
             }
           ));
-        } else {
-          dispatch(signinHandler(
-            {
-              status: 'error',
-              error: data,
-            }
-          ));
         }
+        return dispatch(handler(
+          {
+            status: 'error',
+            error: data,
+          }
+        ));
       });
     })
     .catch((error) => {
-      dispatch(signinHandler(
+      return dispatch(handler(
         {
           status: 'error',
           error,

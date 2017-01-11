@@ -19,7 +19,9 @@ export default {
     data: [],
   },
   roles: {
-    data: [],
+    status: '',
+    msg: 'no requst yet',
+    payload: {},
   },
 };
 
