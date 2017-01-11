@@ -1,15 +1,161 @@
 import React, { Component } from 'react';
 import actions from '../../store/actions';
+import signinValidators from '../../utils/signinValidators';
 
 export default class Signin extends Component {
+  constructor() {
+    super();
+
+    this.state = {
+      userInfo: {
+        username: '',
+        password: '',
+      },
+      asyncLoader: {
+        status: '',
+        succeed: false,
+        message: '',
+      },
+    };
+
+    // Set of validators for signin form
+    this.validators = signinValidators;
+    this.resetValidators();
+
+    // Correctly Bind class methods to reacts class instance
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.displayValidationErrors = this.displayValidationErrors.bind(this);
+    this.displayAsyncFeedback = this.displayAsyncFeedback.bind(this);
+    this.updateValidators = this.updateValidators.bind(this);
+    this.resetValidators = this.resetValidators.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.isFormValid = this.isFormValid.bind(this);
+  }
+
   componentDidMount() {
+    this.store = this.context.store;
+  }
+
+  handleInputChange(event, inputPropName) {
+    const newState = this.state;
+    newState.userInfo[inputPropName] = event.target.value;
+    this.setState(newState);
+    this.updateValidators(inputPropName, event.target.value);
+  }
+
+  handleSubmit(e) {
+    const newState = this.state;
+    newState.asyncLoader.status = 'processing';
+    this.setState(newState);
+    this.store.dispatch(actions.signinHandler(this.state.userInfo))
+    .then((info) => {
+      if (info.status === 'success') {
+        this.context.router.push('/dashboard');
+      } else {
+        newState.asyncLoader = {
+          status: 'completed',
+          succeed: false,
+          message: info.error.msg,
+        };
+        this.setState(newState);
+      }
+    });
+    e.preventDefault();
+  }
+
+  updateValidators(fieldName, value) {
+    this.validators[fieldName].errors = [];
+    this.validators[fieldName].state = value;
+    this.validators[fieldName].valid = true;
+    this.validators[fieldName].rules.forEach((rule) => {
+      if (rule.test instanceof RegExp) {
+        if (!rule.test.test(value)) {
+          this.validators[fieldName].errors.push(rule.message);
+          this.validators[fieldName].valid = false;
+        }
+      } else if (typeof rule.test === 'function') {
+        if (!rule.test(value)) {
+          this.validators[fieldName].errors.push(rule.message);
+          this.validators[fieldName].valid = false;
+        }
+      }
+    });
+  }
+
+  resetValidators() {
+    Object.keys(this.validators).forEach((fieldName) => {
+      this.validators[fieldName].errors = [];
+      this.validators[fieldName].state = '';
+      this.validators[fieldName].valid = false;
+    });
+  }
+
+  displayValidationErrors(fieldName) {
+    const rule = this.validators[fieldName];
+    if (rule) {
+      if (!rule.valid) {
+        const errors = rule.errors.map((info, index) => {
+          return <span className="error" key={index}>* {info}</span>;
+        });
+
+        return (
+          <div className="col s12 row">
+            {errors}
+          </div>
+        );
+      }
+      return '';
+    }
+    return '';
+  }
+
+  isFormValid() {
+    let status = true;
+    const fields = Object.keys(this.validators);
+
+    fields.forEach((field) => {
+      if (!this.validators[field].valid) {
+        status = false;
+      }
+    });
+    return status;
+  }
+
+  displayAsyncFeedback() {
+    if (this.state.asyncLoader.status === 'processing') {
+      return (
+        <div className="row center-align async-loader">
+          <div className="preloader-wrapper small active">
+            <div className="spinner-layer spinner-green-only">
+              <div className="circle-clipper left">
+                <div className="circle" />
+              </div><div className="gap-patch">
+                <div className="circle" />
+              </div><div className="circle-clipper right">
+                <div className="circle" />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    } else if (this.state.asyncLoader.status === 'completed') {
+      if (!this.state.asyncLoader.succeed) {
+        return (
+          <div className="row center-align async-loader">
+            <span style={{ color: 'red' }}> {this.state.asyncLoader.message}</span>
+          </div>
+        );
+      }
+      return '';
+    }
+    return '';
   }
 
   render() {
     return (
       <div className="row">
         <div className="col s12 m8 l4 offset-m2 offset-l4 z-depth-4 card-panel login-form">
-          <form className="col s12">
+          <form className="col s12" onSubmit={this.handleSubmit}>
             <div className="row">
               <div className="input-field col s12">
                 <h4 className="center login-form-text">Sign into your account</h4>
@@ -18,20 +164,35 @@ export default class Signin extends Component {
             <div className="row margin">
               <div className="input-field col s12">
                 <i className="material-icons prefix">person</i>
-                <input id="username" type="text" />
-                <label htmlFor="username" className="left-align">Username</label>
+                <input
+                  id="username"
+                  type="text"
+                  value={this.state.userInfo.username}
+                  onChange={event => this.handleInputChange(event, 'username')}
+                />
+                <label htmlFor="username" className="left-align">username</label>
               </div>
+              { this.displayValidationErrors('username') }
             </div>
             <div className="row margin">
               <div className="input-field col s12">
                 <i className="material-icons prefix">lock</i>
-                <input id="username" type="text" />
-                <label htmlFor="username" className="left-align">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  value={this.state.userInfo.password}
+                  onChange={event => this.handleInputChange(event, 'password')}
+                />
+                <label htmlFor="password" className="left-align">Password</label>
               </div>
+              { this.displayValidationErrors('password') }
             </div>
+            { this.displayAsyncFeedback() }
             <div className="row">
-              <div className="input-field col s12">
-                <a href="index.html" className="btn waves-effect waves-light col s12">Login</a>
+              <div className="input-field col s12 signup-btn">
+                <button className={`btn waves-effect waves-light col s12 ${this.isFormValid() ? '' : 'disabled'}`}>
+                  Login
+                </button>
               </div>
             </div>
             <div className="row">
@@ -48,4 +209,5 @@ export default class Signin extends Component {
 
 Signin.contextTypes = {
   store: React.PropTypes.object,
+  router: React.PropTypes.object.isRequired,
 };

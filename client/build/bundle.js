@@ -63,11 +63,11 @@
 	
 	var _index2 = _interopRequireDefault(_index);
 	
-	var _store = __webpack_require__(/*! ./store */ 581);
+	var _store = __webpack_require__(/*! ./store */ 582);
 	
 	var _store2 = _interopRequireDefault(_store);
 	
-	var _main = __webpack_require__(/*! ./styles/main.scss */ 592);
+	var _main = __webpack_require__(/*! ./styles/main.scss */ 593);
 	
 	var _main2 = _interopRequireDefault(_main);
 	
@@ -33081,11 +33081,15 @@
 	
 	var _home2 = _interopRequireDefault(_home);
 	
+	var _dashboard = __webpack_require__(/*! ./dashboard.jsx */ 597);
+	
+	var _dashboard2 = _interopRequireDefault(_dashboard);
+	
 	var _authSignin = __webpack_require__(/*! ./auth.signin.jsx */ 561);
 	
 	var _authSignin2 = _interopRequireDefault(_authSignin);
 	
-	var _authSignup = __webpack_require__(/*! ./auth.signup.jsx */ 567);
+	var _authSignup = __webpack_require__(/*! ./auth.signup.jsx */ 568);
 	
 	var _authSignup2 = _interopRequireDefault(_authSignup);
 	
@@ -33097,7 +33101,8 @@
 	    { history: _reactRouter.hashHistory },
 	    _react2.default.createElement(_reactRouter.Route, { path: '/', component: _home2.default }),
 	    _react2.default.createElement(_reactRouter.Route, { path: '/signin', component: _authSignin2.default }),
-	    _react2.default.createElement(_reactRouter.Route, { path: '/signup', component: _authSignup2.default })
+	    _react2.default.createElement(_reactRouter.Route, { path: '/signup', component: _authSignup2.default }),
+	    _react2.default.createElement(_reactRouter.Route, { path: '/dashboard', component: _dashboard2.default })
 	  );
 	};
 	
@@ -38090,14 +38095,6 @@
 	  }
 	
 	  _createClass(Home, [{
-	    key: 'componentDidMount',
-	    value: function componentDidMount() {
-	      var store = this.context.store;
-	
-	      console.log(store.getState());
-	      // @TODO poplulate roles in store from server
-	    }
-	  }, {
 	    key: 'render',
 	    value: function render() {
 	      return _react2.default.createElement(
@@ -38112,11 +38109,6 @@
 	}(_react.Component);
 	
 	exports.default = Home;
-	
-	
-	Home.contextTypes = {
-	  store: _react2.default.PropTypes.object
-	};
 
 /***/ },
 /* 561 */
@@ -38141,6 +38133,10 @@
 	
 	var _actions2 = _interopRequireDefault(_actions);
 	
+	var _signinValidators = __webpack_require__(/*! ../../utils/signinValidators */ 567);
+	
+	var _signinValidators2 = _interopRequireDefault(_signinValidators);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -38155,15 +38151,196 @@
 	  function Signin() {
 	    _classCallCheck(this, Signin);
 	
-	    return _possibleConstructorReturn(this, (Signin.__proto__ || Object.getPrototypeOf(Signin)).apply(this, arguments));
+	    var _this = _possibleConstructorReturn(this, (Signin.__proto__ || Object.getPrototypeOf(Signin)).call(this));
+	
+	    _this.state = {
+	      userInfo: {
+	        username: '',
+	        password: ''
+	      },
+	      asyncLoader: {
+	        status: '',
+	        succeed: false,
+	        message: ''
+	      }
+	    };
+	
+	    // Set of validators for signin form
+	    _this.validators = _signinValidators2.default;
+	    _this.resetValidators();
+	
+	    // Correctly Bind class methods to reacts class instance
+	    _this.handleInputChange = _this.handleInputChange.bind(_this);
+	    _this.displayValidationErrors = _this.displayValidationErrors.bind(_this);
+	    _this.displayAsyncFeedback = _this.displayAsyncFeedback.bind(_this);
+	    _this.updateValidators = _this.updateValidators.bind(_this);
+	    _this.resetValidators = _this.resetValidators.bind(_this);
+	    _this.handleSubmit = _this.handleSubmit.bind(_this);
+	    _this.isFormValid = _this.isFormValid.bind(_this);
+	    return _this;
 	  }
 	
 	  _createClass(Signin, [{
 	    key: 'componentDidMount',
-	    value: function componentDidMount() {}
+	    value: function componentDidMount() {
+	      this.store = this.context.store;
+	    }
+	  }, {
+	    key: 'handleInputChange',
+	    value: function handleInputChange(event, inputPropName) {
+	      var newState = this.state;
+	      newState.userInfo[inputPropName] = event.target.value;
+	      this.setState(newState);
+	      this.updateValidators(inputPropName, event.target.value);
+	    }
+	  }, {
+	    key: 'handleSubmit',
+	    value: function handleSubmit(e) {
+	      var _this2 = this;
+	
+	      var newState = this.state;
+	      newState.asyncLoader.status = 'processing';
+	      this.setState(newState);
+	      this.store.dispatch(_actions2.default.signinHandler(this.state.userInfo)).then(function (info) {
+	        if (info.status === 'success') {
+	          _this2.context.router.push('/dashboard');
+	        } else {
+	          newState.asyncLoader = {
+	            status: 'completed',
+	            succeed: false,
+	            message: info.error.msg
+	          };
+	          _this2.setState(newState);
+	        }
+	      });
+	      e.preventDefault();
+	    }
+	  }, {
+	    key: 'updateValidators',
+	    value: function updateValidators(fieldName, value) {
+	      var _this3 = this;
+	
+	      this.validators[fieldName].errors = [];
+	      this.validators[fieldName].state = value;
+	      this.validators[fieldName].valid = true;
+	      this.validators[fieldName].rules.forEach(function (rule) {
+	        if (rule.test instanceof RegExp) {
+	          if (!rule.test.test(value)) {
+	            _this3.validators[fieldName].errors.push(rule.message);
+	            _this3.validators[fieldName].valid = false;
+	          }
+	        } else if (typeof rule.test === 'function') {
+	          if (!rule.test(value)) {
+	            _this3.validators[fieldName].errors.push(rule.message);
+	            _this3.validators[fieldName].valid = false;
+	          }
+	        }
+	      });
+	    }
+	  }, {
+	    key: 'resetValidators',
+	    value: function resetValidators() {
+	      var _this4 = this;
+	
+	      Object.keys(this.validators).forEach(function (fieldName) {
+	        _this4.validators[fieldName].errors = [];
+	        _this4.validators[fieldName].state = '';
+	        _this4.validators[fieldName].valid = false;
+	      });
+	    }
+	  }, {
+	    key: 'displayValidationErrors',
+	    value: function displayValidationErrors(fieldName) {
+	      var rule = this.validators[fieldName];
+	      if (rule) {
+	        if (!rule.valid) {
+	          var errors = rule.errors.map(function (info, index) {
+	            return _react2.default.createElement(
+	              'span',
+	              { className: 'error', key: index },
+	              '* ',
+	              info
+	            );
+	          });
+	
+	          return _react2.default.createElement(
+	            'div',
+	            { className: 'col s12 row' },
+	            errors
+	          );
+	        }
+	        return '';
+	      }
+	      return '';
+	    }
+	  }, {
+	    key: 'isFormValid',
+	    value: function isFormValid() {
+	      var _this5 = this;
+	
+	      var status = true;
+	      var fields = Object.keys(this.validators);
+	
+	      fields.forEach(function (field) {
+	        if (!_this5.validators[field].valid) {
+	          status = false;
+	        }
+	      });
+	      return status;
+	    }
+	  }, {
+	    key: 'displayAsyncFeedback',
+	    value: function displayAsyncFeedback() {
+	      if (this.state.asyncLoader.status === 'processing') {
+	        return _react2.default.createElement(
+	          'div',
+	          { className: 'row center-align async-loader' },
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'preloader-wrapper small active' },
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'spinner-layer spinner-green-only' },
+	              _react2.default.createElement(
+	                'div',
+	                { className: 'circle-clipper left' },
+	                _react2.default.createElement('div', { className: 'circle' })
+	              ),
+	              _react2.default.createElement(
+	                'div',
+	                { className: 'gap-patch' },
+	                _react2.default.createElement('div', { className: 'circle' })
+	              ),
+	              _react2.default.createElement(
+	                'div',
+	                { className: 'circle-clipper right' },
+	                _react2.default.createElement('div', { className: 'circle' })
+	              )
+	            )
+	          )
+	        );
+	      } else if (this.state.asyncLoader.status === 'completed') {
+	        if (!this.state.asyncLoader.succeed) {
+	          return _react2.default.createElement(
+	            'div',
+	            { className: 'row center-align async-loader' },
+	            _react2.default.createElement(
+	              'span',
+	              { style: { color: 'red' } },
+	              ' ',
+	              this.state.asyncLoader.message
+	            )
+	          );
+	        }
+	        return '';
+	      }
+	      return '';
+	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
+	      var _this6 = this;
+	
 	      return _react2.default.createElement(
 	        'div',
 	        { className: 'row' },
@@ -38172,7 +38349,7 @@
 	          { className: 'col s12 m8 l4 offset-m2 offset-l4 z-depth-4 card-panel login-form' },
 	          _react2.default.createElement(
 	            'form',
-	            { className: 'col s12' },
+	            { className: 'col s12', onSubmit: this.handleSubmit },
 	            _react2.default.createElement(
 	              'div',
 	              { className: 'row' },
@@ -38197,13 +38374,21 @@
 	                  { className: 'material-icons prefix' },
 	                  'person'
 	                ),
-	                _react2.default.createElement('input', { id: 'username', type: 'text' }),
+	                _react2.default.createElement('input', {
+	                  id: 'username',
+	                  type: 'text',
+	                  value: this.state.userInfo.username,
+	                  onChange: function onChange(event) {
+	                    return _this6.handleInputChange(event, 'username');
+	                  }
+	                }),
 	                _react2.default.createElement(
 	                  'label',
 	                  { htmlFor: 'username', className: 'left-align' },
-	                  'Username'
+	                  'username'
 	                )
-	              )
+	              ),
+	              this.displayValidationErrors('username')
 	            ),
 	            _react2.default.createElement(
 	              'div',
@@ -38216,23 +38401,32 @@
 	                  { className: 'material-icons prefix' },
 	                  'lock'
 	                ),
-	                _react2.default.createElement('input', { id: 'username', type: 'text' }),
+	                _react2.default.createElement('input', {
+	                  id: 'password',
+	                  type: 'password',
+	                  value: this.state.userInfo.password,
+	                  onChange: function onChange(event) {
+	                    return _this6.handleInputChange(event, 'password');
+	                  }
+	                }),
 	                _react2.default.createElement(
 	                  'label',
-	                  { htmlFor: 'username', className: 'left-align' },
+	                  { htmlFor: 'password', className: 'left-align' },
 	                  'Password'
 	                )
-	              )
+	              ),
+	              this.displayValidationErrors('password')
 	            ),
+	            this.displayAsyncFeedback(),
 	            _react2.default.createElement(
 	              'div',
 	              { className: 'row' },
 	              _react2.default.createElement(
 	                'div',
-	                { className: 'input-field col s12' },
+	                { className: 'input-field col s12 signup-btn' },
 	                _react2.default.createElement(
-	                  'a',
-	                  { href: 'index.html', className: 'btn waves-effect waves-light col s12' },
+	                  'button',
+	                  { className: 'btn waves-effect waves-light col s12 ' + (this.isFormValid() ? '' : 'disabled') },
 	                  'Login'
 	                )
 	              )
@@ -38268,7 +38462,8 @@
 	
 	
 	Signin.contextTypes = {
-	  store: _react2.default.PropTypes.object
+	  store: _react2.default.PropTypes.object,
+	  router: _react2.default.PropTypes.object.isRequired
 	};
 
 /***/ },
@@ -38292,11 +38487,16 @@
 	
 	var _signup2 = _interopRequireDefault(_signup);
 	
+	var _roles = __webpack_require__(/*! ./roles */ 599);
+	
+	var _roles2 = _interopRequireDefault(_roles);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	exports.default = {
-	  signinThunk: _signin2.default,
-	  signupThunk: _signup2.default
+	  signinHandler: _signin2.default,
+	  signupHandler: _signup2.default,
+	  getRoles: _roles2.default
 	};
 
 /***/ },
@@ -38318,7 +38518,7 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var signinHandler = function signinHandler(data) {
+	var handler = function handler(data) {
 	  var action = {
 	    type: 'SIGNIN',
 	    status: data.status
@@ -38326,7 +38526,7 @@
 	  switch (data.status) {
 	    case 'success':
 	      {
-	        action.response = data.response;
+	        action.success = data.response;
 	        return action;
 	      }
 	    case 'error':
@@ -38339,14 +38539,9 @@
 	  }
 	};
 	
-	exports.default = function (username, password) {
+	exports.default = function (userInfo) {
 	  return function (dispatch) {
-	    dispatch(signinHandler({ status: 'start' }));
-	
-	    var payload = {
-	      username: username,
-	      password: password
-	    };
+	    dispatch(handler({ status: 'start' }));
 	
 	    return (0, _isomorphicFetch2.default)('/users/login', {
 	      method: 'POST',
@@ -38354,23 +38549,22 @@
 	        Accept: 'application/json',
 	        'Content-Type': 'application/json'
 	      },
-	      body: JSON.stringify(payload)
+	      body: JSON.stringify(userInfo)
 	    }).then(function (response) {
 	      return response.json().then(function (data) {
 	        if (response.ok) {
-	          dispatch(signinHandler({
+	          return dispatch(handler({
 	            status: 'success',
 	            response: data
 	          }));
-	        } else {
-	          dispatch(signinHandler({
-	            status: 'error',
-	            error: data
-	          }));
 	        }
+	        return dispatch(handler({
+	          status: 'error',
+	          error: data
+	        }));
 	      });
 	    }).catch(function (error) {
-	      dispatch(signinHandler({
+	      return dispatch(handler({
 	        status: 'error',
 	        error: error
 	      }));
@@ -38879,7 +39073,7 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var signupHandler = function signupHandler(data) {
+	var handler = function handler(data) {
 	  var action = {
 	    type: 'SIGNUP',
 	    status: data.status
@@ -38902,7 +39096,7 @@
 	
 	exports.default = function (userInfo) {
 	  return function (dispatch) {
-	    dispatch(signupHandler({ status: 'start' }));
+	    dispatch(handler({ status: 'start' }));
 	    return (0, _isomorphicFetch2.default)('/users', {
 	      method: 'POST',
 	      headers: {
@@ -38913,18 +39107,18 @@
 	    }).then(function (response) {
 	      return response.json().then(function (data) {
 	        if (response.ok) {
-	          return dispatch(signupHandler({
+	          return dispatch(handler({
 	            status: 'success',
 	            success: data
 	          }));
 	        }
-	        return dispatch(signupHandler({
+	        return dispatch(handler({
 	          status: 'error',
 	          error: data
 	        }));
 	      });
 	    }).catch(function (error) {
-	      dispatch(signupHandler({
+	      return dispatch(handler({
 	        status: 'error',
 	        error: error
 	      }));
@@ -38934,6 +39128,49 @@
 
 /***/ },
 /* 567 */
+/*!**********************************************!*\
+  !*** ./client/src/utils/signinValidators.js ***!
+  \**********************************************/
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	// This is the set of validation rules that applies to the signup route.
+	var validator = {
+	  username: {
+	    rules: [{
+	      test: /^[a-z0-9_]+$/,
+	      message: 'Username must contain only alphabets-numeric lowercase characters'
+	    }, {
+	      test: function test(value) {
+	        return value.length > 2;
+	      },
+	      message: 'Username must be longer than two characters'
+	    }],
+	    errors: [],
+	    state: '',
+	    valid: false
+	  },
+	  password: {
+	    rules: [{
+	      test: function test(value) {
+	        return value.length >= 6;
+	      },
+	      message: 'Password must not be shorter than 6 characters'
+	    }],
+	    errors: [],
+	    state: '',
+	    valid: false
+	  }
+	};
+	
+	exports.default = validator;
+
+/***/ },
+/* 568 */
 /*!******************************************************!*\
   !*** ./client/src/components/routes/auth.signup.jsx ***!
   \******************************************************/
@@ -38951,7 +39188,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _reactSelect = __webpack_require__(/*! react-select */ 568);
+	var _reactSelect = __webpack_require__(/*! react-select */ 569);
 	
 	var _reactSelect2 = _interopRequireDefault(_reactSelect);
 	
@@ -38959,7 +39196,7 @@
 	
 	var _actions2 = _interopRequireDefault(_actions);
 	
-	var _signupValidators = __webpack_require__(/*! ../../utils/signupValidators */ 580);
+	var _signupValidators = __webpack_require__(/*! ../../utils/signupValidators */ 581);
 	
 	var _signupValidators2 = _interopRequireDefault(_signupValidators);
 	
@@ -38986,23 +39223,24 @@
 	        lastname: '',
 	        password: '',
 	        confirmPass: '',
-	        role: { value: '123', label: 'Admin' }
+	        role: ''
 	      },
 	      asyncLoader: {
 	        status: '',
 	        succeed: false,
 	        message: ''
-	      }
+	      },
+	      roles: []
 	    };
-	
-	    _this.roles = [{ value: '123', label: 'Admin' }, { value: '234', label: 'Regular' }];
 	
 	    // Set of validators for signup form
 	    _this.validators = _signupValidators2.default;
+	    _this.resetValidators();
 	
 	    // Correctly Bind class methods to reacts class instance
 	    _this.handleInputChange = _this.handleInputChange.bind(_this);
 	    _this.handleRolesChange = _this.handleRolesChange.bind(_this);
+	    _this.setDefaultRoles = _this.setDefaultRoles.bind(_this);
 	    _this.displayValidationErrors = _this.displayValidationErrors.bind(_this);
 	    _this.displayAsyncFeedback = _this.displayAsyncFeedback.bind(_this);
 	    _this.updateValidators = _this.updateValidators.bind(_this);
@@ -39014,7 +39252,38 @@
 	  _createClass(Signup, [{
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
+	      var _this2 = this;
+	
 	      this.store = this.context.store;
+	      var roles = [];
+	
+	      // Populate roles from the server
+	      this.store.dispatch(_actions2.default.getRoles()).then(function (info) {
+	        if (info.status === 'success') {
+	          info.success.forEach(function (role) {
+	            roles.push({
+	              value: role.id,
+	              label: role.title
+	            });
+	          });
+	          _this2.setDefaultRoles(roles);
+	        }
+	      });
+	    }
+	  }, {
+	    key: 'setDefaultRoles',
+	    value: function setDefaultRoles(data) {
+	      var newState = this.state;
+	      newState.roles = data;
+	      newState.userInfo.role = data[0];
+	      this.setState(newState);
+	    }
+	  }, {
+	    key: 'handleRolesChange',
+	    value: function handleRolesChange(event) {
+	      var newState = this.state;
+	      newState.userInfo.role = event;
+	      this.setState(newState);
 	    }
 	  }, {
 	    key: 'handleInputChange',
@@ -39025,29 +39294,21 @@
 	      this.updateValidators(inputPropName, event.target.value);
 	    }
 	  }, {
-	    key: 'handleRolesChange',
-	    value: function handleRolesChange(event) {
-	      var newState = this.state;
-	      newState.userInfo.role = event;
-	      this.setState(newState);
-	    }
-	  }, {
 	    key: 'handleSubmit',
 	    value: function handleSubmit(e) {
-	      var _this2 = this;
+	      var _this3 = this;
 	
 	      var newState = this.state;
 	      newState.asyncLoader.status = 'processing';
 	      this.setState(newState);
-	      this.store.dispatch(_actions2.default.signupThunk({
+	      this.store.dispatch(_actions2.default.signupHandler({
 	        username: this.state.userInfo.username,
 	        firstname: this.state.userInfo.firstname,
 	        lastname: this.state.userInfo.lastname,
 	        password: this.state.userInfo.password,
 	        roleId: this.state.userInfo.role.value
 	      })).then(function (info) {
-	        console.log(info);
-	        newState = _this2.state;
+	        newState = _this3.state;
 	        if (info.status === 'error') {
 	          newState.asyncLoader = {
 	            status: 'completed',
@@ -39061,7 +39322,7 @@
 	            message: info.success.msg
 	          };
 	        }
-	        _this2.setState(newState);
+	        _this3.setState(newState);
 	      });
 	      e.preventDefault();
 	    }
@@ -39071,39 +39332,47 @@
 	      if (this.state.asyncLoader.status === 'processing') {
 	        return _react2.default.createElement(
 	          'div',
-	          { className: 'preloader-wrapper small active' },
+	          { className: 'row center-align async-loader' },
 	          _react2.default.createElement(
 	            'div',
-	            { className: 'spinner-layer spinner-green-only' },
+	            { className: 'preloader-wrapper small active' },
 	            _react2.default.createElement(
 	              'div',
-	              { className: 'circle-clipper left' },
-	              _react2.default.createElement('div', { className: 'circle' })
-	            ),
-	            _react2.default.createElement(
-	              'div',
-	              { className: 'gap-patch' },
-	              _react2.default.createElement('div', { className: 'circle' })
-	            ),
-	            _react2.default.createElement(
-	              'div',
-	              { className: 'circle-clipper right' },
-	              _react2.default.createElement('div', { className: 'circle' })
+	              { className: 'spinner-layer spinner-green-only' },
+	              _react2.default.createElement(
+	                'div',
+	                { className: 'circle-clipper left' },
+	                _react2.default.createElement('div', { className: 'circle' })
+	              ),
+	              _react2.default.createElement(
+	                'div',
+	                { className: 'gap-patch' },
+	                _react2.default.createElement('div', { className: 'circle' })
+	              ),
+	              _react2.default.createElement(
+	                'div',
+	                { className: 'circle-clipper right' },
+	                _react2.default.createElement('div', { className: 'circle' })
+	              )
 	            )
 	          )
 	        );
 	      } else if (this.state.asyncLoader.status === 'completed') {
 	        if (!this.state.asyncLoader.succeed) {
 	          return _react2.default.createElement(
-	            'span',
-	            { style: { color: 'red' } },
-	            ' ',
-	            this.state.asyncLoader.message
+	            'div',
+	            { className: 'row center-align async-loader' },
+	            _react2.default.createElement(
+	              'span',
+	              { style: { color: 'red' } },
+	              ' ',
+	              this.state.asyncLoader.message
+	            )
 	          );
 	        }
 	        return _react2.default.createElement(
 	          'div',
-	          null,
+	          { className: 'row center-align async-loader' },
 	          _react2.default.createElement(
 	            'span',
 	            { style: { color: 'green', display: 'block' } },
@@ -39121,6 +39390,17 @@
 	        );
 	      }
 	      return '';
+	    }
+	  }, {
+	    key: 'resetValidators',
+	    value: function resetValidators() {
+	      var _this4 = this;
+	
+	      Object.keys(this.validators).forEach(function (fieldName) {
+	        _this4.validators[fieldName].errors = [];
+	        _this4.validators[fieldName].state = '';
+	        _this4.validators[fieldName].valid = false;
+	      });
 	    }
 	  }, {
 	    key: 'displayValidationErrors',
@@ -39150,7 +39430,7 @@
 	  }, {
 	    key: 'updateValidators',
 	    value: function updateValidators(fieldName, value) {
-	      var _this3 = this;
+	      var _this5 = this;
 	
 	      this.validators[fieldName].errors = [];
 	      this.validators[fieldName].state = value;
@@ -39158,13 +39438,13 @@
 	      this.validators[fieldName].rules.forEach(function (rule) {
 	        if (rule.test instanceof RegExp) {
 	          if (!rule.test.test(value)) {
-	            _this3.validators[fieldName].errors.push(rule.message);
-	            _this3.validators[fieldName].valid = false;
+	            _this5.validators[fieldName].errors.push(rule.message);
+	            _this5.validators[fieldName].valid = false;
 	          }
 	        } else if (typeof rule.test === 'function') {
 	          if (!rule.test(value)) {
-	            _this3.validators[fieldName].errors.push(rule.message);
-	            _this3.validators[fieldName].valid = false;
+	            _this5.validators[fieldName].errors.push(rule.message);
+	            _this5.validators[fieldName].valid = false;
 	          }
 	        }
 	      });
@@ -39172,13 +39452,13 @@
 	  }, {
 	    key: 'isFormValid',
 	    value: function isFormValid() {
-	      var _this4 = this;
+	      var _this6 = this;
 	
 	      var status = true;
 	      var fields = Object.keys(this.validators);
 	
 	      fields.forEach(function (field) {
-	        if (!_this4.validators[field].valid) {
+	        if (!_this6.validators[field].valid) {
 	          status = false;
 	        }
 	      });
@@ -39187,7 +39467,7 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var _this5 = this;
+	      var _this7 = this;
 	
 	      return _react2.default.createElement(
 	        'div',
@@ -39227,7 +39507,7 @@
 	                  type: 'text',
 	                  value: this.state.userInfo.firstname,
 	                  onChange: function onChange(event) {
-	                    return _this5.handleInputChange(event, 'firstname');
+	                    return _this7.handleInputChange(event, 'firstname');
 	                  }
 	                }),
 	                _react2.default.createElement(
@@ -39254,7 +39534,7 @@
 	                  type: 'text',
 	                  value: this.state.userInfo.lastname,
 	                  onChange: function onChange(event) {
-	                    return _this5.handleInputChange(event, 'lastname');
+	                    return _this7.handleInputChange(event, 'lastname');
 	                  }
 	                }),
 	                _react2.default.createElement(
@@ -39281,7 +39561,7 @@
 	                  type: 'text',
 	                  value: this.state.userInfo.username,
 	                  onChange: function onChange(event) {
-	                    return _this5.handleInputChange(event, 'username');
+	                    return _this7.handleInputChange(event, 'username');
 	                  }
 	                }),
 	                _react2.default.createElement(
@@ -39308,7 +39588,7 @@
 	                  type: 'password',
 	                  value: this.state.userInfo.password,
 	                  onChange: function onChange(event) {
-	                    return _this5.handleInputChange(event, 'password');
+	                    return _this7.handleInputChange(event, 'password');
 	                  }
 	                }),
 	                _react2.default.createElement(
@@ -39335,7 +39615,7 @@
 	                  type: 'password',
 	                  value: this.state.userInfo.confirmPass,
 	                  onChange: function onChange(event) {
-	                    return _this5.handleInputChange(event, 'confirmPass');
+	                    return _this7.handleInputChange(event, 'confirmPass');
 	                  }
 	                }),
 	                _react2.default.createElement(
@@ -39358,15 +39638,11 @@
 	                className: 'select',
 	                name: 'form-field-name',
 	                value: this.state.userInfo.role,
-	                options: this.roles,
+	                options: this.state.roles,
 	                onChange: this.handleRolesChange
 	              })
 	            ),
-	            _react2.default.createElement(
-	              'div',
-	              { className: 'row center-align async-loader' },
-	              this.displayAsyncFeedback()
-	            ),
+	            this.displayAsyncFeedback(),
 	            _react2.default.createElement(
 	              'div',
 	              { className: 'row' },
@@ -39416,7 +39692,7 @@
 	};
 
 /***/ },
-/* 568 */
+/* 569 */
 /*!**************************************!*\
   !*** ./~/react-select/lib/Select.js ***!
   \**************************************/
@@ -39450,43 +39726,43 @@
 	
 	var _reactDom2 = _interopRequireDefault(_reactDom);
 	
-	var _reactInputAutosize = __webpack_require__(/*! react-input-autosize */ 569);
+	var _reactInputAutosize = __webpack_require__(/*! react-input-autosize */ 570);
 	
 	var _reactInputAutosize2 = _interopRequireDefault(_reactInputAutosize);
 	
-	var _classnames = __webpack_require__(/*! classnames */ 570);
+	var _classnames = __webpack_require__(/*! classnames */ 571);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
-	var _utilsDefaultArrowRenderer = __webpack_require__(/*! ./utils/defaultArrowRenderer */ 571);
+	var _utilsDefaultArrowRenderer = __webpack_require__(/*! ./utils/defaultArrowRenderer */ 572);
 	
 	var _utilsDefaultArrowRenderer2 = _interopRequireDefault(_utilsDefaultArrowRenderer);
 	
-	var _utilsDefaultFilterOptions = __webpack_require__(/*! ./utils/defaultFilterOptions */ 572);
+	var _utilsDefaultFilterOptions = __webpack_require__(/*! ./utils/defaultFilterOptions */ 573);
 	
 	var _utilsDefaultFilterOptions2 = _interopRequireDefault(_utilsDefaultFilterOptions);
 	
-	var _utilsDefaultMenuRenderer = __webpack_require__(/*! ./utils/defaultMenuRenderer */ 574);
+	var _utilsDefaultMenuRenderer = __webpack_require__(/*! ./utils/defaultMenuRenderer */ 575);
 	
 	var _utilsDefaultMenuRenderer2 = _interopRequireDefault(_utilsDefaultMenuRenderer);
 	
-	var _Async = __webpack_require__(/*! ./Async */ 575);
+	var _Async = __webpack_require__(/*! ./Async */ 576);
 	
 	var _Async2 = _interopRequireDefault(_Async);
 	
-	var _AsyncCreatable = __webpack_require__(/*! ./AsyncCreatable */ 576);
+	var _AsyncCreatable = __webpack_require__(/*! ./AsyncCreatable */ 577);
 	
 	var _AsyncCreatable2 = _interopRequireDefault(_AsyncCreatable);
 	
-	var _Creatable = __webpack_require__(/*! ./Creatable */ 577);
+	var _Creatable = __webpack_require__(/*! ./Creatable */ 578);
 	
 	var _Creatable2 = _interopRequireDefault(_Creatable);
 	
-	var _Option = __webpack_require__(/*! ./Option */ 578);
+	var _Option = __webpack_require__(/*! ./Option */ 579);
 	
 	var _Option2 = _interopRequireDefault(_Option);
 	
-	var _Value = __webpack_require__(/*! ./Value */ 579);
+	var _Value = __webpack_require__(/*! ./Value */ 580);
 	
 	var _Value2 = _interopRequireDefault(_Value);
 	
@@ -40611,7 +40887,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 569 */
+/* 570 */
 /*!*****************************************************!*\
   !*** ./~/react-input-autosize/lib/AutosizeInput.js ***!
   \*****************************************************/
@@ -40748,7 +41024,7 @@
 	module.exports = AutosizeInput;
 
 /***/ },
-/* 570 */
+/* 571 */
 /*!*******************************!*\
   !*** ./~/classnames/index.js ***!
   \*******************************/
@@ -40805,7 +41081,7 @@
 
 
 /***/ },
-/* 571 */
+/* 572 */
 /*!**********************************************************!*\
   !*** ./~/react-select/lib/utils/defaultArrowRenderer.js ***!
   \**********************************************************/
@@ -40837,7 +41113,7 @@
 	module.exports = exports["default"];
 
 /***/ },
-/* 572 */
+/* 573 */
 /*!**********************************************************!*\
   !*** ./~/react-select/lib/utils/defaultFilterOptions.js ***!
   \**********************************************************/
@@ -40847,7 +41123,7 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
-	var _stripDiacritics = __webpack_require__(/*! ./stripDiacritics */ 573);
+	var _stripDiacritics = __webpack_require__(/*! ./stripDiacritics */ 574);
 	
 	var _stripDiacritics2 = _interopRequireDefault(_stripDiacritics);
 	
@@ -40887,7 +41163,7 @@
 	module.exports = filterOptions;
 
 /***/ },
-/* 573 */
+/* 574 */
 /*!*****************************************************!*\
   !*** ./~/react-select/lib/utils/stripDiacritics.js ***!
   \*****************************************************/
@@ -40905,7 +41181,7 @@
 	};
 
 /***/ },
-/* 574 */
+/* 575 */
 /*!*********************************************************!*\
   !*** ./~/react-select/lib/utils/defaultMenuRenderer.js ***!
   \*********************************************************/
@@ -40915,7 +41191,7 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
-	var _classnames = __webpack_require__(/*! classnames */ 570);
+	var _classnames = __webpack_require__(/*! classnames */ 571);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
@@ -40974,7 +41250,7 @@
 	module.exports = menuRenderer;
 
 /***/ },
-/* 575 */
+/* 576 */
 /*!*************************************!*\
   !*** ./~/react-select/lib/Async.js ***!
   \*************************************/
@@ -41004,11 +41280,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _Select = __webpack_require__(/*! ./Select */ 568);
+	var _Select = __webpack_require__(/*! ./Select */ 569);
 	
 	var _Select2 = _interopRequireDefault(_Select);
 	
-	var _utilsStripDiacritics = __webpack_require__(/*! ./utils/stripDiacritics */ 573);
+	var _utilsStripDiacritics = __webpack_require__(/*! ./utils/stripDiacritics */ 574);
 	
 	var _utilsStripDiacritics2 = _interopRequireDefault(_utilsStripDiacritics);
 	
@@ -41185,7 +41461,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 576 */
+/* 577 */
 /*!**********************************************!*\
   !*** ./~/react-select/lib/AsyncCreatable.js ***!
   \**********************************************/
@@ -41201,7 +41477,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _Select = __webpack_require__(/*! ./Select */ 568);
+	var _Select = __webpack_require__(/*! ./Select */ 569);
 	
 	var _Select2 = _interopRequireDefault(_Select);
 	
@@ -41235,7 +41511,7 @@
 	module.exports = AsyncCreatable;
 
 /***/ },
-/* 577 */
+/* 578 */
 /*!*****************************************!*\
   !*** ./~/react-select/lib/Creatable.js ***!
   \*****************************************/
@@ -41253,15 +41529,15 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _Select = __webpack_require__(/*! ./Select */ 568);
+	var _Select = __webpack_require__(/*! ./Select */ 569);
 	
 	var _Select2 = _interopRequireDefault(_Select);
 	
-	var _utilsDefaultFilterOptions = __webpack_require__(/*! ./utils/defaultFilterOptions */ 572);
+	var _utilsDefaultFilterOptions = __webpack_require__(/*! ./utils/defaultFilterOptions */ 573);
 	
 	var _utilsDefaultFilterOptions2 = _interopRequireDefault(_utilsDefaultFilterOptions);
 	
-	var _utilsDefaultMenuRenderer = __webpack_require__(/*! ./utils/defaultMenuRenderer */ 574);
+	var _utilsDefaultMenuRenderer = __webpack_require__(/*! ./utils/defaultMenuRenderer */ 575);
 	
 	var _utilsDefaultMenuRenderer2 = _interopRequireDefault(_utilsDefaultMenuRenderer);
 	
@@ -41527,7 +41803,7 @@
 	module.exports = Creatable;
 
 /***/ },
-/* 578 */
+/* 579 */
 /*!**************************************!*\
   !*** ./~/react-select/lib/Option.js ***!
   \**************************************/
@@ -41541,7 +41817,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _classnames = __webpack_require__(/*! classnames */ 570);
+	var _classnames = __webpack_require__(/*! classnames */ 571);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
@@ -41646,7 +41922,7 @@
 	module.exports = Option;
 
 /***/ },
-/* 579 */
+/* 580 */
 /*!*************************************!*\
   !*** ./~/react-select/lib/Value.js ***!
   \*************************************/
@@ -41660,7 +41936,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _classnames = __webpack_require__(/*! classnames */ 570);
+	var _classnames = __webpack_require__(/*! classnames */ 571);
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
@@ -41760,7 +42036,7 @@
 	module.exports = Value;
 
 /***/ },
-/* 580 */
+/* 581 */
 /*!**********************************************!*\
   !*** ./client/src/utils/signupValidators.js ***!
   \**********************************************/
@@ -41848,7 +42124,7 @@
 	exports.default = validator;
 
 /***/ },
-/* 581 */
+/* 582 */
 /*!***********************************!*\
   !*** ./client/src/store/index.js ***!
   \***********************************/
@@ -41862,15 +42138,15 @@
 	
 	var _redux = __webpack_require__(/*! redux */ 43);
 	
-	var _reduxThunk = __webpack_require__(/*! redux-thunk */ 582);
+	var _reduxThunk = __webpack_require__(/*! redux-thunk */ 583);
 	
 	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
 	
-	var _reduxLogger = __webpack_require__(/*! redux-logger */ 583);
+	var _reduxLogger = __webpack_require__(/*! redux-logger */ 584);
 	
 	var _reduxLogger2 = _interopRequireDefault(_reduxLogger);
 	
-	var _reducers = __webpack_require__(/*! ./reducers */ 589);
+	var _reducers = __webpack_require__(/*! ./reducers */ 590);
 	
 	var _reducers2 = _interopRequireDefault(_reducers);
 	
@@ -41882,7 +42158,7 @@
 	exports.default = store;
 
 /***/ },
-/* 582 */
+/* 583 */
 /*!************************************!*\
   !*** ./~/redux-thunk/lib/index.js ***!
   \************************************/
@@ -41913,7 +42189,7 @@
 	exports['default'] = thunk;
 
 /***/ },
-/* 583 */
+/* 584 */
 /*!*************************************!*\
   !*** ./~/redux-logger/lib/index.js ***!
   \*************************************/
@@ -41927,11 +42203,11 @@
 	  value: true
 	});
 	
-	var _core = __webpack_require__(/*! ./core */ 584);
+	var _core = __webpack_require__(/*! ./core */ 585);
 	
-	var _helpers = __webpack_require__(/*! ./helpers */ 585);
+	var _helpers = __webpack_require__(/*! ./helpers */ 586);
 	
-	var _defaults = __webpack_require__(/*! ./defaults */ 588);
+	var _defaults = __webpack_require__(/*! ./defaults */ 589);
 	
 	var _defaults2 = _interopRequireDefault(_defaults);
 	
@@ -42034,7 +42310,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 584 */
+/* 585 */
 /*!************************************!*\
   !*** ./~/redux-logger/lib/core.js ***!
   \************************************/
@@ -42047,9 +42323,9 @@
 	});
 	exports.printBuffer = printBuffer;
 	
-	var _helpers = __webpack_require__(/*! ./helpers */ 585);
+	var _helpers = __webpack_require__(/*! ./helpers */ 586);
 	
-	var _diff = __webpack_require__(/*! ./diff */ 586);
+	var _diff = __webpack_require__(/*! ./diff */ 587);
 	
 	var _diff2 = _interopRequireDefault(_diff);
 	
@@ -42178,7 +42454,7 @@
 	}
 
 /***/ },
-/* 585 */
+/* 586 */
 /*!***************************************!*\
   !*** ./~/redux-logger/lib/helpers.js ***!
   \***************************************/
@@ -42205,7 +42481,7 @@
 	var timer = exports.timer = typeof performance !== "undefined" && performance !== null && typeof performance.now === "function" ? performance : Date;
 
 /***/ },
-/* 586 */
+/* 587 */
 /*!************************************!*\
   !*** ./~/redux-logger/lib/diff.js ***!
   \************************************/
@@ -42218,7 +42494,7 @@
 	});
 	exports.default = diffLogger;
 	
-	var _deepDiff = __webpack_require__(/*! deep-diff */ 587);
+	var _deepDiff = __webpack_require__(/*! deep-diff */ 588);
 	
 	var _deepDiff2 = _interopRequireDefault(_deepDiff);
 	
@@ -42304,7 +42580,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 587 */
+/* 588 */
 /*!******************************!*\
   !*** ./~/deep-diff/index.js ***!
   \******************************/
@@ -42736,7 +43012,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 588 */
+/* 589 */
 /*!****************************************!*\
   !*** ./~/redux-logger/lib/defaults.js ***!
   \****************************************/
@@ -42790,7 +43066,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 589 */
+/* 590 */
 /*!********************************************!*\
   !*** ./client/src/store/reducers/index.js ***!
   \********************************************/
@@ -42802,13 +43078,17 @@
 	  value: true
 	});
 	
-	var _defaultState = __webpack_require__(/*! ../defaultState */ 590);
+	var _defaultState = __webpack_require__(/*! ../defaultState */ 591);
 	
 	var _defaultState2 = _interopRequireDefault(_defaultState);
 	
-	var _auth = __webpack_require__(/*! ./auth */ 591);
+	var _auth = __webpack_require__(/*! ./auth */ 592);
 	
 	var _auth2 = _interopRequireDefault(_auth);
+	
+	var _roles = __webpack_require__(/*! ./roles */ 598);
+	
+	var _roles2 = _interopRequireDefault(_roles);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -42832,25 +43112,15 @@
 	  return state;
 	};
 	
-	var roles = function roles() {
-	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultState2.default.roles;
-	  var action = arguments[1];
-	
-	  if (action.type === 'SUR_NAME') {
-	    return action.surname;
-	  }
-	  return state;
-	};
-	
 	exports.default = {
 	  auth: _auth2.default,
 	  user: user,
 	  documents: documents,
-	  roles: roles
+	  roles: _roles2.default
 	};
 
 /***/ },
-/* 590 */
+/* 591 */
 /*!******************************************!*\
   !*** ./client/src/store/defaultState.js ***!
   \******************************************/
@@ -42882,12 +43152,14 @@
 	    data: []
 	  },
 	  roles: {
-	    data: []
+	    status: '',
+	    msg: 'no requst yet',
+	    payload: {}
 	  }
 	};
 
 /***/ },
-/* 591 */
+/* 592 */
 /*!*******************************************!*\
   !*** ./client/src/store/reducers/auth.js ***!
   \*******************************************/
@@ -42899,7 +43171,7 @@
 	  value: true
 	});
 	
-	var _defaultState = __webpack_require__(/*! ../defaultState */ 590);
+	var _defaultState = __webpack_require__(/*! ../defaultState */ 591);
 	
 	var _defaultState2 = _interopRequireDefault(_defaultState);
 	
@@ -42924,7 +43196,7 @@
 	            signin: {
 	              status: action.status,
 	              msg: 'login successful',
-	              payload: action.response
+	              payload: action.success
 	            }
 	          });
 	        }
@@ -42969,7 +43241,7 @@
 	};
 
 /***/ },
-/* 592 */
+/* 593 */
 /*!*************************************!*\
   !*** ./client/src/styles/main.scss ***!
   \*************************************/
@@ -42978,10 +43250,10 @@
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(/*! !./../../../~/css-loader!./../../../~/sass-loader!./main.scss */ 593);
+	var content = __webpack_require__(/*! !./../../../~/css-loader!./../../../~/sass-loader!./main.scss */ 594);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(/*! ./../../../~/style-loader/addStyles.js */ 595)(content, {});
+	var update = __webpack_require__(/*! ./../../../~/style-loader/addStyles.js */ 596)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -42998,24 +43270,24 @@
 	}
 
 /***/ },
-/* 593 */
+/* 594 */
 /*!********************************************************************!*\
   !*** ./~/css-loader!./~/sass-loader!./client/src/styles/main.scss ***!
   \********************************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(/*! ./../../../~/css-loader/lib/css-base.js */ 594)();
+	exports = module.exports = __webpack_require__(/*! ./../../../~/css-loader/lib/css-base.js */ 595)();
 	// imports
 	
 	
 	// module
-	exports.push([module.id, "body {\n  background-color: #00BCD4;\n  padding: 0em; }\n\n.login-form {\n  margin-top: 5em; }\n\n.select {\n  z-index: 1000000; }\n\n.signup-btn {\n  padding: 0 !important; }\n\n.role-select h6 {\n  font-size: 1.4em;\n  margin-bottom: .5em; }\n\n.error {\n  display: block;\n  margin-left: 3em;\n  font-weight: bold;\n  font-size: .95em;\n  color: red; }\n\n.async-loader {\n  border: 1px solid #00BCD4;\n  border-radius: 5px;\n  padding: 1em .6em; }\n", ""]);
+	exports.push([module.id, "body {\n  background-color: #00BCD4;\n  padding: 0em; }\n\n.login-form {\n  margin-top: 5em; }\n\n.select {\n  z-index: 1000000; }\n\n.signup-btn {\n  padding: 0 !important; }\n\n.role-select h6 {\n  font-size: 1.2em;\n  margin-bottom: .5em; }\n\n.error {\n  display: block;\n  margin-left: 3em;\n  font-weight: bold;\n  font-size: .95em;\n  color: red; }\n\n.async-loader {\n  border: 1px solid #00BCD4;\n  border-radius: 5px;\n  padding: 1em .6em; }\n", ""]);
 	
 	// exports
 
 
 /***/ },
-/* 594 */
+/* 595 */
 /*!**************************************!*\
   !*** ./~/css-loader/lib/css-base.js ***!
   \**************************************/
@@ -43074,7 +43346,7 @@
 
 
 /***/ },
-/* 595 */
+/* 596 */
 /*!*************************************!*\
   !*** ./~/style-loader/addStyles.js ***!
   \*************************************/
@@ -43327,6 +43599,193 @@
 			URL.revokeObjectURL(oldSrc);
 	}
 
+
+/***/ },
+/* 597 */
+/*!****************************************************!*\
+  !*** ./client/src/components/routes/dashboard.jsx ***!
+  \****************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Dashboard = function (_Component) {
+	  _inherits(Dashboard, _Component);
+	
+	  function Dashboard() {
+	    _classCallCheck(this, Dashboard);
+	
+	    return _possibleConstructorReturn(this, (Dashboard.__proto__ || Object.getPrototypeOf(Dashboard)).apply(this, arguments));
+	  }
+	
+	  _createClass(Dashboard, [{
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      var store = this.context.store;
+	
+	      console.log(store.getState());
+	      // @TODO check to see that token details is available on the store / localstorage
+	      // Else kick user out to signin page
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return _react2.default.createElement(
+	        'h1',
+	        null,
+	        'Hello we are in the dashboard now'
+	      );
+	    }
+	  }]);
+	
+	  return Dashboard;
+	}(_react.Component);
+	
+	exports.default = Dashboard;
+	
+	
+	Dashboard.contextTypes = {
+	  store: _react2.default.PropTypes.object,
+	  router: _react2.default.PropTypes.object.isRequired
+	};
+
+/***/ },
+/* 598 */
+/*!********************************************!*\
+  !*** ./client/src/store/reducers/roles.js ***!
+  \********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _defaultState = __webpack_require__(/*! ../defaultState */ 591);
+	
+	var _defaultState2 = _interopRequireDefault(_defaultState);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	exports.default = function () {
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _defaultState2.default.roles;
+	  var action = arguments[1];
+	
+	  switch (action.type) {
+	    case 'GET_ROLES':
+	      {
+	        if (action.status === 'start') {
+	          return Object.assign({}, state, {
+	            status: 'processing'
+	          });
+	        } else if (action.status === 'success') {
+	          return Object.assign({}, state, {
+	            status: action.status,
+	            msg: 'Roles loaded successfully',
+	            payload: action.success
+	          });
+	        }
+	        return Object.assign({}, state, {
+	          status: action.status,
+	          msg: 'Roles not loaded',
+	          payload: action.error
+	        });
+	      }
+	    default:
+	      return state;
+	  }
+	};
+
+/***/ },
+/* 599 */
+/*!*******************************************!*\
+  !*** ./client/src/store/actions/roles.js ***!
+  \*******************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _isomorphicFetch = __webpack_require__(/*! isomorphic-fetch */ 564);
+	
+	var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var handler = function handler(data) {
+	  var action = {
+	    type: 'GET_ROLES',
+	    status: data.status
+	  };
+	  switch (data.status) {
+	    case 'success':
+	      {
+	        action.success = data.response;
+	        return action;
+	      }
+	    case 'error':
+	      {
+	        action.error = data.error;
+	        return action;
+	      }
+	    default:
+	      return action;
+	  }
+	};
+	
+	exports.default = function () {
+	  return function (dispatch) {
+	    dispatch(handler({ status: 'start' }));
+	
+	    return (0, _isomorphicFetch2.default)('/roles', {
+	      method: 'GET',
+	      headers: {
+	        Accept: 'application/json',
+	        'Content-Type': 'application/json'
+	      }
+	    }).then(function (response) {
+	      return response.json().then(function (data) {
+	        if (response.ok) {
+	          return dispatch(handler({
+	            status: 'success',
+	            response: data
+	          }));
+	        }
+	        return dispatch(handler({
+	          status: 'error',
+	          error: data
+	        }));
+	      });
+	    }).catch(function (error) {
+	      return dispatch(handler({
+	        status: 'error',
+	        error: error
+	      }));
+	    });
+	  };
+	};
 
 /***/ }
 /******/ ]);

@@ -1,14 +1,13 @@
-
 import fetch from 'isomorphic-fetch';
 
 const handler = (data) => {
   const action = {
-    type: 'SIGNUP',
+    type: 'GET_ROLES',
     status: data.status,
   };
   switch (data.status) {
     case 'success': {
-      action.success = data.success;
+      action.success = data.response;
       return action;
     }
     case 'error': {
@@ -20,16 +19,16 @@ const handler = (data) => {
   }
 };
 
-export default userInfo => (
+export default () => (
   (dispatch) => {
     dispatch(handler({ status: 'start' }));
-    return fetch('/users', {
-      method: 'POST',
+
+    return fetch('/roles', {
+      method: 'GET',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(userInfo),
     })
     .then((response) => {
       return response.json().then((data) => {
@@ -37,7 +36,7 @@ export default userInfo => (
           return dispatch(handler(
             {
               status: 'success',
-              success: data,
+              response: data,
             }
           ));
         }
