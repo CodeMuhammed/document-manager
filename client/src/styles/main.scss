@@ -8,7 +8,7 @@ body {
 }
 
 .select {
-    z-index: 1000000;
+    z-index: 10000;
 } 
 
 .signup-btn {
@@ -36,4 +36,134 @@ body {
     border: 1px solid #00BCD4;
     border-radius: 5px;
     padding: 1em .6em;
+}
+
+.nav-input {
+    position: relative;
+    margin-bottom: 0;
+    .input-field {
+        background-color: white;
+        .prefix {
+            color: #222729;
+        }
+        input {
+            margin-bottom: 0 !important;
+            margin-left: 1em !important;
+            background-color: white;
+            border-radius: 0px;
+            height: 2.5em !important;
+            color: #6D7375 !important;
+        }
+    }
+    
+}
+
+.sidenav {
+     position: fixed;
+     top: 0;
+     width: 22em;
+     height: 100%;
+     background-color: #fff;
+     padding: 0;
+     z-index: 1000000;
+     .header {
+         padding: 2em 1em 1em;
+         position: relative;
+         margin-bottom: 1em;
+         h2 {
+             font-size: 2em;
+             margin-top: 0;
+         }
+         .icon {
+             position: absolute;
+             right: 1em;
+             top: 1em;
+             color: gray;
+         }
+     }
+     .menu{
+         list-style: none;
+         .menu-item {
+             display: block;
+             padding: 1em 1.4em;
+             position: relative;
+             &:hover {
+                 background-color: #EFEFEF;
+                 cursor: pointer;
+             }
+             a {
+                 color: #000;
+                 font-weight: bold;
+                 font-size: 1.2em;
+                 display: inline-block;
+             }
+             .prefix {
+                display: inline-block;
+                position: absolute;
+              }
+              .text {
+                 display: inline-block;
+                 height: 3em;
+                 margin-left: 2em;
+              }
+         }
+     }
+}
+
+.doc-mainview-wrapper {
+    padding: 0 1.5em !important;
+    .doc-filter {
+        padding: 0 !important;
+        padding-top: 1em !important;
+        margin-bottom: 0em;
+        position: relative;
+        font-size: 1.1em;
+        font-weight:bold;
+        .icon {
+            display: inline-block;
+        }
+        .text {
+            display: inline-block;
+            height: 3em !important;
+        }
+    }
+    .doc-list {
+        background: #fff;
+        padding: 1.5em 0 !important;
+        height: 20em;
+    }
+}
+
+.doc-wrapper {
+    padding: 0 2.25em !important;
+    margin-bottom:0;
+    .doc {
+        padding: 0em;
+        background-color: #fff;
+        border: 1px solid lightgray;
+        &:hover {
+            background-color: #EFEFEF
+        }
+        .text {
+            padding: 1em;
+            display: inline-block;
+            font-size: 1.1em;
+        }
+        .controls {
+            padding: 1em;
+            padding-right: 0;
+            margin:0;
+            display: inline-block;
+            position: relative;
+            .control {
+                display: inline-block;
+                width: 3em;
+                float:left;
+                &:hover {
+                    cursor: pointer;
+                    color: #00BCD4;
+                }
+            }
+        }
+    }
 }

@@ -50,7 +50,7 @@ export default class Signin extends Component {
     this.store.dispatch(actions.signinHandler(this.state.userInfo))
     .then((info) => {
       if (info.status === 'success') {
-        this.context.router.push('/dashboard');
+        this.context.router.push('/dashboard/documents');
       } else {
         newState.asyncLoader = {
           status: 'completed',
