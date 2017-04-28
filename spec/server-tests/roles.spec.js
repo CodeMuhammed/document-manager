@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../../server/api';
 import testData from './testdata.json';
-import usersAuth from './loginusers';
+import usersAuth from './loginUsers';
 
 let adminUser;
 let regularUser;
@@ -25,7 +25,7 @@ describe('Roles API', () => {
       .post('/roles/')
       .set('x-access-token', adminUser.token)
       .send(testData.roles.blocked)
-      .expect(200)
+      .expect(201)
       .end((err, res) => {
         if (res) {
           expect(res.body.data.id).toBeDefined();

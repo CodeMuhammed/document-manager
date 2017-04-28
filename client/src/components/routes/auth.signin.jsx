@@ -37,14 +37,14 @@ export default class Signin extends Component {
   }
 
   handleInputChange(event, inputPropName) {
-    const newState = this.state;
+    const newState = Object.assign({}, this.state);
     newState.userInfo[inputPropName] = event.target.value;
     this.setState(newState);
     this.updateValidators(inputPropName, event.target.value);
   }
 
   handleSubmit(e) {
-    const newState = this.state;
+    const newState = Object.assign({}, this.state);
     newState.asyncLoader.status = 'processing';
     this.setState(newState);
     this.store.dispatch(actions.signinHandler(this.state.userInfo))
@@ -91,22 +91,20 @@ export default class Signin extends Component {
   }
 
   displayValidationErrors(fieldName) {
-    const rule = this.validators[fieldName];
-    if (rule) {
-      if (!rule.valid) {
-        const errors = rule.errors.map((info, index) => {
-          return <span className="error" key={index}>* {info}</span>;
-        });
+    const validator = this.validators[fieldName];
+    const result = '';
+    if (validator && !validator.valid) {
+      const errors = validator.errors.map((info, index) => {
+        return <span className="error" key={index}>* {info}</span>;
+      });
 
-        return (
-          <div className="col s12 row">
-            {errors}
-          </div>
-        );
-      }
-      return '';
+      return (
+        <div className="col s12 row">
+          {errors}
+        </div>
+      );
     }
-    return '';
+    return result;
   }
 
   isFormValid() {

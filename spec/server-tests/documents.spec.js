@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../../server/api';
 import testData from './testdata.json';
-import usersAuth from './loginusers';
+import usersAuth from './loginUsers';
 
 let adminUser;
 let regularUser;
@@ -17,7 +17,7 @@ describe('Documents API', () => {
         .expect(200)
         .end((err, res) => {
           if (res) {
-            defaultDoc = res.body[0];
+            defaultDoc = res.body;
             done();
           }
           return done(err);
@@ -47,6 +47,7 @@ describe('Documents API', () => {
         if (res) {
           done();
         }
+        expect(res.body.length).toEqual(4);
         return done(err);
       });
     });
@@ -54,6 +55,31 @@ describe('Documents API', () => {
     it('GETs all allowed documents when requested by a regular user', (done) => {
       request(app)
       .get('/documents/')
+      .set('Accept', 'application/json')
+      .set('x-access-token', regularUser.token)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .end((err, res) => {
+        if (res) {
+          /*
+           * Makes sure that returned docs are either public or owned by this user
+           * creator of the doc shares the same role as user this user.
+           */
+          res.body.forEach((doc) => {
+            const isValid = doc.access === 'public' ||
+                            doc.userId === regularUser.data.id ||
+                            doc.roleId === regularUser.data.roleId;
+            expect(isValid).toBeTruthy();
+          });
+          done();
+        }
+        return done(err);
+      });
+    });
+
+    it('Successfully paginates documents', (done) => {
+      request(app)
+      .get('/documents/?offset=0&limit=1')
       .set('Accept', 'application/json')
       .set('x-access-token', regularUser.token)
       .expect('Content-Type', /json/)
@@ -102,6 +128,7 @@ describe('Documents API', () => {
         .expect(200)
         .end((err, res) => {
           if (res) {
+            expect(res.body.id).toBeDefined();
             done();
           }
           return done(err);
@@ -118,15 +145,29 @@ describe('Documents API', () => {
         .end((err, res) => {
           if (res) {
             /*
-            * Makes sure that returned docs are either public or owned by this user
+            * Makes sure that returned doc is either public or owned by this user
             * creator of the doc shares the same role as user this user.
             */
-            res.body.forEach((doc) => {
-              const isValid = doc.access === 'public' ||
-                              doc.userId === regularUser.data.id ||
-                              doc.roleId === regularUser.data.roleId;
-              expect(isValid).toBeTruthy();
-            });
+            const isValid = res.body.access === 'public' ||
+                            res.body.userId === regularUser.data.id ||
+                            res.body.roleId === regularUser.data.roleId;
+            expect(isValid).toBeTruthy();
+            done();
+          }
+          return done(err);
+        });
+    });
+
+    it('GET any document that a regular user is allowed to access', (done) => {
+      request(app)
+        .get('/documents/234')
+        .set('Accept', 'application/json')
+        .set('x-access-token', regularUser.token)
+        .expect('Content-Type', /json/)
+        .expect(403)
+        .end((err, res) => {
+          if (res) {
+            expect(res.body.msg).toEqual('cannot acess this document');
             done();
           }
           return done(err);
@@ -147,6 +188,7 @@ describe('Documents API', () => {
           return done(err);
         });
     });
+
     it('Should DELETE the docment', (done) => {
       request(app)
       .delete(`/documents/${defaultDoc.id}`)

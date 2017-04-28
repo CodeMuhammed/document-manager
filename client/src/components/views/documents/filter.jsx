@@ -44,11 +44,11 @@ export default class Filter extends Component {
           <div className="col s12 doc-filter">
             <span className="text">
               <span>
-                Showing top 20 documents
+                Showing results for documents
               </span>
             </span>
             <span className="dropdown-button right filer-dropdown col-s12" data-activates="rights">
-              <span>
+              <span style={{ cursor: 'pointer' }}>
                 Filter: {this.state.selected}
               </span>
               <i className="material-icons icon">keyboard_arrow_down</i>

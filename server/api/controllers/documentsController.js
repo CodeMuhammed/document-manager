@@ -12,13 +12,11 @@ const create = (req, res) => {
 
   models.Documents.create(newDoc)
   .then((result) => {
-    res.status(201).send(
-      {
-        data: result.get({
-          plain: true,
-        }),
-      }
-    );
+    res.status(201).send({
+      data: result.get({
+        plain: true,
+      }),
+    });
   })
   .catch((e) => {
     res.status(500).send({ msg: e.errors[0].message });
@@ -28,6 +26,7 @@ const create = (req, res) => {
 // Method definition for getting all documents
 const getAll = (req, res) => {
   models.Documents.findAll({
+    offset: req.query.offset || 0,
     include: [
       {
         as: 'role',
@@ -44,13 +43,16 @@ const getAll = (req, res) => {
         })
       )
       .filter((result) => {
-        if (result.access === 'role') {
+        if (req.decoded.role === 'admin') {
+          return true;
+        } else if (result.access === 'role') {
           return result.roleId === req.decoded.roleId;
         } else if (result.access === 'private') {
           return result.userId === req.decoded.userId;
         }
         return true;
       })
+      .slice(0, (req.query.limit))
     );
   })
   .catch((e) => {
@@ -70,29 +72,35 @@ const getOne = (req, res) => {
     ],
   })
   .then((results) => {
-    res.status(200).send(
-      results
+    const docs = results
       .map(result =>
         result.get({
           plain: true,
         })
       )
       .filter((result) => {
-        if (result.access === 'role') {
+        if (req.decoded.role === 'admin') {
+          return true;
+        } else if (result.access === 'role') {
           return result.roleId === req.decoded.roleId;
         } else if (result.access === 'private') {
           return result.userId === req.decoded.userId;
         }
         return true;
-      })
-    );
+      });
+
+    if (docs[0]) {
+      res.status(200).send(docs[0]);
+    } else {
+      res.status(403).send({ msg: 'cannot acess this document' });
+    }
   })
   .catch((e) => {
     res.status(500).send({ msg: e });
   });
 };
 
-// Method definition for updating one ocument
+// Method definition for updating one document
 const update = (req, res) => {
   models.Documents.update(req.body, {
     where: { id: req.params.id },
@@ -111,7 +119,7 @@ const remove = (req, res) => {
     where: { id: req.params.id },
   })
   .then(() => {
-    res.status(202).send({ msg: 'document deleted' });
+    res.status(200).send({ msg: 'document deleted' });
   })
   .catch(() => {
     res.status(500).send({ msg: 'cannot delete document' });
@@ -120,7 +128,6 @@ const remove = (req, res) => {
 
 // Method definition for seaching documents
 const search = (req, res) => {
-  // req.query.date.toUpperCase()
   models.Documents.findAll({
     order: [
       ['createdAt', req.query.date.toUpperCase()],

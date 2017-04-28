@@ -10,7 +10,7 @@ import Document from './document.jsx';
 
 const App = () => (
   <Router history={hashHistory}>
-    <Route path="/" component={Home} />
+    <Route path="/" component={Signin} />
     <Route path="/signin" component={Signin} />
     <Route path="/signup" component={Signup} />
     <Route path="dashboard" component={Dashboard}>

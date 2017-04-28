@@ -19,7 +19,7 @@ export default class Dashboard extends Component {
   }
 
   toggleSideNav(navState) {
-    const newState = this.state;
+    const newState = Object.assign({}, this.state);
     newState.sideNav.visible = navState || !newState.sideNav.visible;
     this.setState(newState);
   }

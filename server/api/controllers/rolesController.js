@@ -5,7 +5,7 @@ const create = (req, res) => {
   if (req.decoded.role === 'admin') {
     models.Roles.create(req.body)
     .then((result) => {
-      res.status(200).send(
+      res.status(201).send(
         {
           data: result.get({
             plain: true,
@@ -25,10 +25,11 @@ const create = (req, res) => {
 const getAll = (req, res) => {
   models.Roles.findAll()
   .then((results) => {
-    res.status(200).send(results.map(r =>
-      r.get({
+    res.status(200).send(results.map(result =>
+      result.get({
         plain: true,
-      })));
+      }))
+    );
   })
   .catch((e) => {
     res.status(500).send({ msg: e.errors[0].message });
@@ -44,7 +45,8 @@ const getOne = (req, res) => {
     res.status(200).send(results.map(r =>
       r.get({
         plain: true,
-      })));
+      }))
+    );
   })
   .catch((e) => {
     res.status(500).send({ msg: e.errors[0].message });

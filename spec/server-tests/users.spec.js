@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../../server/api';
 import testData from './testdata.json';
-import usersAuth from './loginusers';
+import usersAuth from './loginUsers';
 
 // sign in a defaul users
 let adminUser;
@@ -22,12 +22,13 @@ describe('User API', () => {
       }
     });
   });
+
   describe('/users/', () => {
     it('Validates newly created user', (done) => {
       request(app)
       .post('/users')
         .send(testData.users.admin)
-        .expect(200)
+        .expect(201)
         .end((err, res) => {
           if (res) {
             expect(res.body.msg).toEqual('signup success');
@@ -37,7 +38,7 @@ describe('User API', () => {
         });
     });
 
-    it('Fails when it trys to create a user that already exists', (done) => {
+    it('Fails when it tries to create a user that already exists', (done) => {
       request(app)
       .post('/users')
         .send(testData.users.admin)
@@ -66,7 +67,7 @@ describe('User API', () => {
       });
     });
 
-    it('Returns error when a regular user trys to GET all users', (done) => {
+    it('Returns error when a regular user tries to GET all users', (done) => {
       request(app)
       .get('/users/')
       .set('Accept', 'application/json')
@@ -103,7 +104,7 @@ describe('User API', () => {
         });
     });
 
-    it('Trys to login an invalid user', (done) => {
+    it('Tries to login an invalid user', (done) => {
       request(app)
       .post('/users/login')
         .send(
@@ -121,7 +122,7 @@ describe('User API', () => {
         });
     });
 
-    it('Trys to login a valid user with the wrong password', (done) => {
+    it('Tries to login a valid user with the wrong password', (done) => {
       request(app)
       .post('/users/login')
         .send(
@@ -141,7 +142,7 @@ describe('User API', () => {
   });
 
   describe('/users/:id', () => {
-    it('Trys to get a user with no token provided', (done) => {
+    it('Tries to get a user with no token provided', (done) => {
       request(app)
       .get(`/users/${adminUser.data.id}`)
       .set('Accept', 'application/json')
@@ -156,7 +157,7 @@ describe('User API', () => {
       });
     });
 
-    it('Trys to get a user with a forged token', (done) => {
+    it('Tries to get a user with a forged token', (done) => {
       request(app)
       .get(`/users/${adminUser.data.id}`)
       .set('Accept', 'application/json')

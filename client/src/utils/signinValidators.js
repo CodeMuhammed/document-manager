@@ -1,4 +1,4 @@
-// This is the set of validation rules that applies to the signup route.
+// This is the set of validation rules that applies to the signin route.
 const validator = {
   username: {
     rules: [

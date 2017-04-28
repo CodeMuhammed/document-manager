@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Select from 'react-select';
 import actions from '../../store/actions';
 import signupValidators from '../../utils/signupValidators';
 
@@ -14,14 +13,13 @@ export default class Signup extends Component {
         lastname: '',
         password: '',
         confirmPass: '',
-        role: '',
+        roleId: 234,
       },
       asyncLoader: {
         status: '',
         succeed: false,
         message: '',
       },
-      roles: [],
     };
 
     // Set of validators for signup form
@@ -30,8 +28,6 @@ export default class Signup extends Component {
 
     // Correctly Bind class methods to reacts class instance
     this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleRolesChange = this.handleRolesChange.bind(this);
-    this.setDefaultRoles = this.setDefaultRoles.bind(this);
     this.displayValidationErrors = this.displayValidationErrors.bind(this);
     this.displayAsyncFeedback = this.displayAsyncFeedback.bind(this);
     this.updateValidators = this.updateValidators.bind(this);
@@ -41,45 +37,17 @@ export default class Signup extends Component {
 
   componentDidMount() {
     this.store = this.context.store;
-    const roles = [];
-
-    // Populate roles from the server
-    this.store.dispatch(actions.getRoles())
-    .then((info) => {
-      if (info.status === 'success') {
-        info.success.forEach((role) => {
-          roles.push({
-            value: role.id,
-            label: role.title,
-          });
-        });
-        this.setDefaultRoles(roles);
-      }
-    });
-  }
-
-  setDefaultRoles(data) {
-    const newState = this.state;
-    newState.roles = data;
-    newState.userInfo.role = data[0];
-    this.setState(newState);
-  }
-
-  handleRolesChange(event) {
-    const newState = this.state;
-    newState.userInfo.role = event;
-    this.setState(newState);
   }
 
   handleInputChange(event, inputPropName) {
-    const newState = this.state;
+    const newState = Object.assign({}, this.state);
     newState.userInfo[inputPropName] = event.target.value;
     this.setState(newState);
     this.updateValidators(inputPropName, event.target.value);
   }
 
   handleSubmit(e) {
-    let newState = this.state;
+    let newState = Object.assign({}, this.state);
     newState.asyncLoader.status = 'processing';
     this.setState(newState);
     this.store.dispatch(actions.signupHandler({
@@ -87,9 +55,9 @@ export default class Signup extends Component {
       firstname: this.state.userInfo.firstname,
       lastname: this.state.userInfo.lastname,
       password: this.state.userInfo.password,
-      roleId: this.state.userInfo.role.value,
+      roleId: this.state.userInfo.roleId,
     })).then((info) => {
-      newState = this.state;
+      newState = Object.assign({}, this.state);
       if (info.status === 'error') {
         newState.asyncLoader = {
           status: 'completed',
@@ -277,16 +245,6 @@ export default class Signup extends Component {
                 <label htmlFor="confirm" className="left-align">Confirm password</label>
               </div>
               { this.displayValidationErrors('confirmPass') }
-            </div>
-            <div className="row margin role-select">
-              <h6 className="left-align">Select role</h6>
-              <Select
-                className="select"
-                name="form-field-name"
-                value={this.state.userInfo.role}
-                options={this.state.roles}
-                onChange={this.handleRolesChange}
-              />
             </div>
             { this.displayAsyncFeedback() }
             <div className="row">

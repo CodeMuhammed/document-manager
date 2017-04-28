@@ -1,47 +1,37 @@
 import jwt from 'jsonwebtoken';
-import bCrypt from 'bcrypt-nodejs';
+
 import models from '../../models';
-
-/**
- * This helper function checks a non-salted pasword against its salt
- */
-const isValid = (passwordStr, passwordSalted) =>
-                bCrypt.compareSync(passwordStr, passwordSalted);
-
-/**
- * This helper creates a salt from a password string
- */
-const createHash = passwordStr => bCrypt.hashSync(passwordStr, null, null);
+import bcryptHelpers from '../../helpers/bcryptHelpers';
 
 // Method definition getting one user
 const create = (req, res) => {
   models.Users.findAll({
     where: { username: req.body.username },
   })
-    .then((results) => {
-      if (results[0]) {
-        res.status(409).send({ msg: `user with username ${req.body.username} already exist` });
-      } else {
-        Object.defineProperty(req.body, 'password', {
-          value: createHash(req.body.password),
-        });
+  .then((results) => {
+    if (results[0]) {
+      res.status(409).send({ msg: `user with username ${req.body.username} already exist` });
+    } else {
+      Object.defineProperty(req.body, 'password', {
+        value: bcryptHelpers.createHash(req.body.password),
+      });
 
-        models.Users.create(req.body)
-        .then(() => {
-          res.status(200).send(
-            {
-              msg: 'signup success',
-            }
-          );
-        })
-        .catch(() => {
-          res.status(500).send({ msg: 'error while creating user, form might contain invalid inputs' });
-        });
-      }
-    })
-    .catch(() => {
-      res.status(500).send({ msg: 'invalid form inputs' });
-    });
+      models.Users.create(req.body)
+      .then(() => {
+        res.status(201).send(
+          {
+            msg: 'signup success',
+          }
+        );
+      })
+      .catch(() => {
+        res.status(500).send({ msg: 'error while creating user, form might contain invalid inputs' });
+      });
+    }
+  })
+  .catch(() => {
+    res.status(500).send({ msg: 'invalid form inputs' });
+  });
 };
 
 // Method definition for login
@@ -59,7 +49,7 @@ const login = (req, res) => {
     if (!results[0]) {
       return res.status(404).send({ msg: 'user not found' });
     }
-    if (isValid(req.body.password, results[0].password)) {
+    if (bcryptHelpers.isValid(req.body.password, results[0].password)) {
       const data = results[0];
       const token = jwt.sign({
         userId: data.id,
@@ -171,14 +161,14 @@ const remove = (req, res) => {
         where: { id: req.params.id },
       })
       .then(() => {
-        res.status(202).send({ msg: 'user deleted successfully' });
+        res.status(200).send({ msg: 'user deleted successfully' });
       })
       .catch(() => {
-        res.status(401).send({ msg: 'user delete failed' });
+        res.status(500).send({ msg: 'internal server error' });
       });
     })
     .catch(() => {
-      res.status(500).send({ msg: 'user document delete failed' });
+      res.status(500).send({ msg: 'internal server error' });
     });
   } else {
     res.status(401).send({ msg: 'unauthorized: do not have access' });

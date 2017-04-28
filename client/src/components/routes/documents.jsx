@@ -17,23 +17,7 @@ export default class Documents extends Component {
           title: 'The second doc i saved',
           content: 'This is the body of the document',
         },
-         {
-          title: 'The first doc i saved',
-          content: 'This is the body of the document',
-        },
         {
-          title: 'The second doc i saved',
-          content: 'This is the body of the document',
-        },
-         {
-          title: 'The first doc i saved',
-          content: 'This is the body of the document',
-        },
-        {
-          title: 'The second doc i saved',
-          content: 'This is the body of the document',
-        },
-         {
           title: 'The first doc i saved',
           content: 'This is the body of the document',
         },
@@ -42,10 +26,26 @@ export default class Documents extends Component {
           content: 'This is the body of the document',
         },
         {
+          title: 'The first doc i saved',
+          content: 'This is the body of the document',
+        },
+        {
           title: 'The second doc i saved',
           content: 'This is the body of the document',
         },
-         {
+        {
+          title: 'The first doc i saved',
+          content: 'This is the body of the document',
+        },
+        {
+          title: 'The second doc i saved',
+          content: 'This is the body of the document',
+        },
+        {
+          title: 'The second doc i saved',
+          content: 'This is the body of the document',
+        },
+        {
           title: 'The first doc i saved',
           content: 'This is the body of the document',
         },
@@ -59,8 +59,8 @@ export default class Documents extends Component {
 
   getDocsList() {
     const docs = [];
-    this.state.docs.forEach((doc) => {
-      docs.push(<Doc data={doc} />);
+    this.state.docs.forEach((doc, index) => {
+      docs.push(<Doc key={index} data={doc} />);
     });
     return docs;
   }
@@ -73,13 +73,28 @@ export default class Documents extends Component {
     return (
       <div>
         <Filter filterChanged={this.filterChanged} />
+        <div>
+          <div className="row center-align async-loader">
+            <div className="preloader-wrapper small active">
+              <div className="spinner-layer spinner-green-only">
+                <div className="circle-clipper left">
+                  <div className="circle" />
+                </div><div className="gap-patch">
+                  <div className="circle" />
+                </div><div className="circle-clipper right">
+                  <div className="circle" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         { this.getDocsList() }
         <div className="fixed-action-btn">
           <a className="btn-floating btn-large waves-effect waves-light red">
-            <i className="large material-icons">mode_edit</i>
+            <i className="large material-icons">add</i>
           </a>
         </div>
-        <ul className="pagination">
+        <ul className="pagination center-align">
           <li className="disabled"><a href="#!"><i className="material-icons">chevron_left</i></a></li>
           <li className="active"><a href="#!">1</a></li>
           <li className="waves-effect"><a href="#!">2</a></li>
